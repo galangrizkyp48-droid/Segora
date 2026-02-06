@@ -20,6 +20,8 @@ export default function Explore() {
             if (catData) setCategories(catData);
 
             // Fetch Items (Recommendations)
+            const { data: { user } } = await supabase.auth.getUser();
+
             let query = supabase
                 .from('items')
                 .select('*')
@@ -30,7 +32,6 @@ export default function Explore() {
                 query = query.ilike('title', `%${search}%`);
             }
 
-            const { data: itemData } = await query;
             if (itemData) setRecommendations(itemData);
         }
         const timeout = setTimeout(fetchData, 500);

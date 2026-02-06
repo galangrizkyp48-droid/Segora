@@ -24,6 +24,14 @@ export default function Home() {
         query = query.ilike('title', `%${search}%`);
       }
 
+      // Add campus filtering based on user's campus
+      if (user) {
+        const campus = user.user_metadata?.campus;
+        if (campus) {
+          query = query.eq('campus', campus);
+        }
+      }
+
       const { data } = await query;
       if (data) setItems(data);
     }

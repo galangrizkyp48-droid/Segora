@@ -59,8 +59,8 @@ export default function Dashboard() {
                         <h2 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Dashboard Penjual</h2>
                     </div>
                     <div className="flex w-12 items-center justify-end">
-                        <button onClick={() => router.push('/')} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm text-[#0d171b] dark:text-white hover:bg-slate-200 transition-colors">
-                            <span className="material-symbols-outlined">close</span>
+                        <button onClick={() => router.push('/profile')} className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 shadow-sm text-[#0d171b] dark:text-white hover:bg-slate-200 transition-colors" title="Kembali ke Mode Pembeli">
+                            <span className="material-symbols-outlined">person</span>
                         </button>
                     </div>
                 </div>

@@ -24,6 +24,9 @@ export default function CreateOffer() {
             return;
         }
 
+        const { user } = session;
+        const campusId = user.user_metadata?.campus || 'untirta'; // Fallback or strict check
+
         const { error } = await supabase.from('items').insert({
             title: formData.title,
             description: formData.description,
@@ -32,7 +35,8 @@ export default function CreateOffer() {
             seller_name: session.user.email?.split('@')[0] || "User",
             rating: 5.0,
             image_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY",
-            offer_type: offerType
+            offer_type: offerType,
+            campus: campusId
         });
 
         if (!error) {

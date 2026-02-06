@@ -6,6 +6,7 @@ export type Item = {
     image_url: string;
     category_id: string;
     category_name?: string; // For joined queries
+    seller_id: string; // Add this
     seller_name: string;
     seller_avatar: string; // URL
     seller_major: string; // e.g., 'Teknik', 'MIPA'

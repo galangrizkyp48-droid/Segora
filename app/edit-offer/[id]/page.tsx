@@ -232,13 +232,13 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                         <div className="flex flex-col gap-2">
                             <label className="text-slate-700 dark:text-slate-300 text-sm font-bold">Kategori</label>
                             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                                {["Elektronik", "Akademik", "Fashion", "Makanan"].map((cat) => (
+                                {(categories.length > 0 ? categories : [{ id: '1', name: 'Elektronik' }, { id: '2', name: 'Akademik' }, { id: '3', name: 'Fashion' }, { id: '4', name: 'Makanan' }]).map((cat) => (
                                     <button
-                                        key={cat}
-                                        onClick={() => setFormData({ ...formData, category: cat })}
-                                        className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-colors ${formData.category === cat ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white"}`}
+                                        key={typeof cat === 'object' ? cat.id : cat}
+                                        onClick={() => setFormData({ ...formData, category: typeof cat === 'object' ? cat.name : cat, category_id: typeof cat === 'object' ? cat.id : '' })}
+                                        className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-colors ${formData.category === (typeof cat === 'object' ? cat.name : cat) ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white"}`}
                                     >
-                                        {cat}
+                                        {typeof cat === 'object' ? cat.name : cat}
                                     </button>
                                 ))}
                             </div>

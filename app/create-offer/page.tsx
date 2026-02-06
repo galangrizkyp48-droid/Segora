@@ -91,17 +91,34 @@ export default function CreateOffer() {
         const sellerName = profile?.shop_name || session.user.email?.split('@')[0] || "User";
         const sellerAvatar = profile?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY";
 
+        // Fetch Category ID based on selected name
+        const { data: categoryData } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', formData.category) // Ensure category name matches DB
+            .single();
+
+        // Fallback to a default category if not found (or handle error)
+        // ideally 'Lainnya' should exist.
+        const categoryId = categoryData?.id;
+
+        if (!categoryId) {
+            alert("Kategori tidak valid atau belum tersedia di database.");
+            setLoading(false);
+            return;
+        }
+
         const { error } = await supabase.from('items').insert({
             title: formData.title,
             description: formData.description,
             price: Number(formData.price),
-            category_id: "00000000-0000-0000-0000-000000000001", // TODO: Use real Category ID
+            category_id: categoryId,
             seller_name: sellerName,
-            seller_avatar: sellerAvatar, // Fix: Include seller_avatar
+            seller_avatar: sellerAvatar,
             rating: 5.0,
             image_url: uploadedImageUrl,
             offer_type: offerType,
-            location: formData.location || campusId, // Use input location or default to campus
+            location: formData.location || campusId,
             campus: campusId,
             seller_id: user.id
         });

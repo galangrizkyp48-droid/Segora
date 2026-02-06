@@ -27,6 +27,7 @@ export default function Login() {
                     email,
                     password,
                     options: {
+                        emailRedirectTo: `${window.location.origin}/auth/callback`,
                         data: {
                             full_name: fullName,
                         }

@@ -10,11 +10,14 @@ export default function EditOffer({ params }: { params: { id: string } }) {
     const [offerType, setOfferType] = useState("Produk");
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [uploading, setUploading] = useState(false);
+    const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [formData, setFormData] = useState({
         title: "",
         description: "",
         price: "",
         category: "Elektronik",
+        category_id: "",
         image_url: ""
     });
 
@@ -25,6 +28,10 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                 router.push("/login");
                 return;
             }
+
+            // Fetch categories from DB
+            const { data: catData } = await supabase.from('categories').select('*');
+            if (catData) setCategories(catData);
 
             const { data, error } = await supabase
                 .from('items')
@@ -40,7 +47,8 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                     title: data.title,
                     description: data.description,
                     price: data.price.toString(),
-                    category: data.category_name || "Elektronik", // Fallback if category_name used
+                    category: data.category_name || "Elektronik",
+                    category_id: data.category_id || "",
                     image_url: data.image_url
                 });
                 setOfferType(data.offer_type || "Produk");
@@ -53,15 +61,64 @@ export default function EditOffer({ params }: { params: { id: string } }) {
         fetchItem();
     }, [params.id, router]);
 
+    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Ukuran file maksimal 5MB');
+            return;
+        }
+
+        setUploading(true);
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
+        const filePath = `item-images/${fileName}`;
+
+        const { error: uploadError, data } = await supabase.storage
+            .from('items')
+            .upload(filePath, file);
+
+        if (uploadError) {
+            alert('Gagal upload gambar: ' + uploadError.message);
+            setUploading(false);
+            return;
+        }
+
+        const { data: { publicUrl } } = supabase.storage
+            .from('items')
+            .getPublicUrl(filePath);
+
+        setFormData(prev => ({ ...prev, image_url: publicUrl }));
+        setUploading(false);
+    };
+
     const handleSubmit = async () => {
         setSaving(true);
+
+        // Fetch category_id by name (matching create-offer pattern)
+        let categoryId = formData.category_id;
+        if (!categoryId && formData.category) {
+            const { data: catData } = await supabase
+                .from('categories')
+                .select('id')
+                .eq('name', formData.category)
+                .single();
+
+            if (catData) {
+                categoryId = catData.id;
+            }
+        }
+
         const { error } = await supabase
             .from('items')
             .update({
                 title: formData.title,
                 description: formData.description,
                 price: Number(formData.price),
-                // category_id: 1, // Keep existing or update logic if category system improves
+                image_url: formData.image_url,
+                category_id: categoryId,
                 offer_type: offerType
             })
             .eq('id', params.id);
@@ -131,10 +188,26 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                     <div className="px-4 py-4">
                         <p className="text-slate-700 dark:text-slate-300 text-sm font-bold mb-3">Foto Barang/Ilustrasi</p>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:bg-slate-100 transition-colors">
-                                <span className="material-symbols-outlined text-primary text-3xl mb-1">add_a_photo</span>
-                                <span className="text-[10px] font-bold text-slate-400">Ubah</span>
-                            </div>
+                            <label className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:bg-slate-100 transition-colors">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageUpload}
+                                    className="hidden"
+                                    disabled={uploading}
+                                />
+                                {uploading ? (
+                                    <>
+                                        <span className="material-symbols-outlined text-primary text-3xl mb-1 animate-spin">progress_activity</span>
+                                        <span className="text-[10px] font-bold text-slate-400">Upload...</span>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="material-symbols-outlined text-primary text-3xl mb-1">add_a_photo</span>
+                                        <span className="text-[10px] font-bold text-slate-400">Ubah</span>
+                                    </>
+                                )}
+                            </label>
                             <div
                                 className="aspect-square rounded-xl bg-cover bg-center bg-slate-200 dark:bg-slate-800"
                                 style={{

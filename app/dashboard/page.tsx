@@ -117,29 +117,29 @@ export default function Dashboard() {
                 {/* Menu Cepat Section */}
                 <h2 className="text-[#0d171b] dark:text-white text-[20px] font-bold leading-tight tracking-[-0.015em] px-4 pb-3 pt-6">Menu Cepat</h2>
                 <div className="grid grid-cols-2 gap-3 px-4 pb-4">
-                    <div className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <div onClick={() => alert("Fitur Analitik segera hadir!")} className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <div className="bg-primary/10 p-2 rounded-lg text-primary">
                             <span className="material-symbols-outlined">analytics</span>
                         </div>
                         <h2 className="text-[#0d171b] dark:text-white text-sm font-bold leading-tight">Analitik</h2>
                     </div>
-                    <div className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <div onClick={() => alert("Fitur Ulasan segera hadir!")} className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <div className="bg-primary/10 p-2 rounded-lg text-primary">
                             <span className="material-symbols-outlined">reviews</span>
                         </div>
                         <h2 className="text-[#0d171b] dark:text-white text-sm font-bold leading-tight">Ulasan</h2>
                     </div>
-                    <div className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    <Link href="/messages" className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <div className="bg-primary/10 p-2 rounded-lg text-primary">
                             <span className="material-symbols-outlined">forum</span>
                         </div>
                         <h2 className="text-[#0d171b] dark:text-white text-sm font-bold leading-tight">Pesan</h2>
-                    </div>
-                    <div className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                    </Link>
+                    <div onClick={() => router.push(`/seller/${user?.id}`)} className="flex flex-1 gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 items-center shadow-sm cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                         <div className="bg-primary/10 p-2 rounded-lg text-primary">
-                            <span className="material-symbols-outlined">settings</span>
+                            <span className="material-symbols-outlined">storefront</span>
                         </div>
-                        <h2 className="text-[#0d171b] dark:text-white text-sm font-bold leading-tight">Toko</h2>
+                        <h2 className="text-[#0d171b] dark:text-white text-sm font-bold leading-tight">Toko Saya</h2>
                     </div>
                 </div>
 

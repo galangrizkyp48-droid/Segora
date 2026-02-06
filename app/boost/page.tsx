@@ -54,8 +54,8 @@ export default function BoostPage() {
     };
 
     const handlePayment = () => {
-        alert(`Pembayaran Rp ${getPrice().toLocaleString('id-ID')} berhasil! Item Anda telah disundul.`);
-        router.push("/dashboard");
+        alert("Fitur sedang dikembangkan.");
+        // router.push("/dashboard"); // Stay on page or redirect? User said "hanya menampilkan kalimat pop up"
     };
 
     if (loading) return null;
@@ -204,7 +204,10 @@ export default function BoostPage() {
                                     <p className="text-xs text-white/70">Mulai dari</p>
                                     <p className="text-lg font-bold">Rp 49.000<span className="text-xs font-normal">/bulan</span></p>
                                 </div>
-                                <button className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform">
+                                <button
+                                    onClick={() => alert("Fitur sedang dikembangkan.")}
+                                    className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform"
+                                >
                                     Cek Paket
                                 </button>
                             </div>

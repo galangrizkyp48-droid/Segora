@@ -104,7 +104,10 @@ export default function Dashboard() {
                                 <p className="text-lg font-bold leading-tight tracking-[-0.015em]">Segora Plus</p>
                             </div>
                             <p className="text-white/90 text-sm font-normal leading-snug mb-4">Tingkatkan visibilitas jualanmu hingga 5x lipat dengan fitur premium untuk mahasiswa.</p>
-                            <button className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-white text-primary text-sm font-bold leading-normal transition-transform active:scale-95 shadow-lg">
+                            <button
+                                onClick={() => alert("Fitur sedang dikembangkan.")}
+                                className="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-4 bg-white text-primary text-sm font-bold leading-normal transition-transform active:scale-95 shadow-lg"
+                            >
                                 <span className="truncate">Langganan Sekarang</span>
                             </button>
                         </div>

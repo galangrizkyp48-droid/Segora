@@ -169,7 +169,7 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
                     <span className="material-symbols-outlined">favorite</span>
                 </button>
                 <button
-                    onClick={() => handleInteraction(() => router.push('/messages'))}
+                    onClick={() => handleInteraction(() => router.push('/messages/1'))}
                     className="flex-1 bg-primary text-white font-bold h-14 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
                 >
                     <span className="material-symbols-outlined">chat</span>

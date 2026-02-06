@@ -16,7 +16,21 @@ export default function CreateOffer() {
         category: "Elektronik",
     });
 
+    const [imageFile, setImageFile] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        setImageFile(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
     const handleSubmit = async () => {
+        if (!formData.title || !formData.price || !formData.description) {
+            return alert("Mohon lengkapi semua data!");
+        }
+
         setLoading(true);
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
@@ -25,22 +39,49 @@ export default function CreateOffer() {
         }
 
         const { user } = session;
-        const campusId = user.user_metadata?.campus || 'untirta'; // Fallback or strict check
+        const campusId = user.user_metadata?.campus || 'untirta';
+
+        let uploadedImageUrl = "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY"; // Default fallback
+
+        // Upload Image if selected
+        if (imageFile) {
+            const fileExt = imageFile.name.split('.').pop();
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `items/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('images')
+                .upload(filePath, imageFile);
+
+            if (uploadError) {
+                console.error("Upload error:", uploadError);
+                alert("Gagal upload foto: " + uploadError.message);
+                setLoading(false);
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('images')
+                .getPublicUrl(filePath);
+
+            uploadedImageUrl = publicUrl;
+        }
 
         const { error } = await supabase.from('items').insert({
             title: formData.title,
             description: formData.description,
             price: Number(formData.price),
-            category_id: 1, // Default to 1
+            category_id: "00000000-0000-0000-0000-000000000001", // TODO: Use real Category ID
             seller_name: session.user.email?.split('@')[0] || "User",
             rating: 5.0,
-            image_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY",
+            image_url: uploadedImageUrl,
             offer_type: offerType,
-            campus: campusId
+            campus: campusId,
+            seller_id: user.id
         });
 
         if (!error) {
-            router.push("/");
+            router.push("/dashboard"); // Redirect to Dashboard after creation
         } else {
             alert("Gagal: " + error.message);
         }
@@ -114,24 +155,40 @@ export default function CreateOffer() {
                     <div className="px-4 py-4">
                         <p className="text-slate-700 dark:text-slate-300 text-sm font-bold mb-3">Foto Barang/Ilustrasi</p>
                         <div className="grid grid-cols-3 gap-3">
-                            <div className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:bg-slate-100 transition-colors">
+                            <div className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-xl bg-slate-50 dark:bg-slate-800/50 cursor-pointer hover:bg-slate-100 transition-colors relative">
                                 <span className="material-symbols-outlined text-primary text-3xl mb-1">add_a_photo</span>
                                 <span className="text-[10px] font-bold text-slate-400">Tambah</span>
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={handleImageChange}
+                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                />
                             </div>
-                            <div
-                                className="aspect-square rounded-xl bg-cover bg-center bg-slate-200 dark:bg-slate-800"
-                                style={{
-                                    backgroundImage:
-                                        "url('https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY')",
-                                }}
-                            ></div>
-                            <div
-                                className="aspect-square rounded-xl bg-cover bg-center bg-slate-200 dark:bg-slate-800"
-                                style={{
-                                    backgroundImage:
-                                        "url('https://lh3.googleusercontent.com/aida-public/AB6AXuDoeck0-jW1sTx4Dw7ZrCPMFGn04BAAnutJeyP2A4148VCUhzOXQ576KRNadJGt91qMAPOUl7EK6A6VsG0V54NzJBVf17mI2Kb5daDgCXqDk3wLhkqYlzuZt44EybeClbtAxFG6U3OXA-BcKU8P0giEqCKdzRMd6yaCI1h3gaLmwLZBqNG4zruqURuYGtSkEVrVjO327wqQq_PNOkGyN6b69mP2Nd3EQOx3rPDHUJsHcB4aRigSqDxf8XP4Qd-iTyLBIvTV60VPfGw')",
-                                }}
-                            ></div>
+
+                            {/* Preview */}
+                            {previewUrl && (
+                                <div
+                                    className="aspect-square rounded-xl bg-cover bg-center bg-slate-200 dark:bg-slate-800 relative"
+                                    style={{
+                                        backgroundImage: `url('${previewUrl}')`,
+                                    }}
+                                >
+                                    <button
+                                        onClick={() => { setPreviewUrl(null); setImageFile(null); }}
+                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 shadow-md"
+                                    >
+                                        <span className="material-symbols-outlined text-[14px]">close</span>
+                                    </button>
+                                </div>
+                            )}
+
+                            {/* Placeholder if needed */}
+                            {!previewUrl && (
+                                <div
+                                    className="aspect-square rounded-xl bg-cover bg-center bg-slate-100 dark:bg-slate-800/50 opacity-50"
+                                ></div>
+                            )}
                         </div>
                     </div>
 

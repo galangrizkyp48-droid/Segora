@@ -11,6 +11,9 @@ export default function SetupShop() {
     const [shopName, setShopName] = useState("");
     const [shopDesc, setShopDesc] = useState("");
 
+    const [shopImage, setShopImage] = useState<File | null>(null);
+    const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
     useEffect(() => {
         const checkUser = async () => {
             const { data: { session } } = await supabase.auth.getSession();
@@ -21,6 +24,13 @@ export default function SetupShop() {
         checkUser();
     }, [router]);
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (!e.target.files || e.target.files.length === 0) return;
+        const file = e.target.files[0];
+        setShopImage(file);
+        setPreviewUrl(URL.createObjectURL(file));
+    };
+
     const handleSave = async () => {
         if (!shopName) return alert("Nama toko wajib diisi!");
         setLoading(true);
@@ -28,23 +38,54 @@ export default function SetupShop() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return;
 
+        let uploadedImageUrl = null;
+
+        // Upload Image if selected
+        if (shopImage) {
+            const fileExt = shopImage.name.split('.').pop();
+            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
+            const filePath = `shops/${fileName}`;
+
+            const { error: uploadError } = await supabase.storage
+                .from('images')
+                .upload(filePath, shopImage);
+
+            if (uploadError) {
+                console.error("Upload error:", uploadError);
+                alert("Gagal upload foto: " + uploadError.message);
+                setLoading(false);
+                return;
+            }
+
+            const { data: { publicUrl } } = supabase.storage
+                .from('images')
+                .getPublicUrl(filePath);
+
+            uploadedImageUrl = publicUrl;
+        }
+
         // Update profile to become a seller
+        const updateData: any = {
+            is_seller: true,
+            shop_name: shopName,
+            shop_description: shopDesc,
+        };
+
+        if (uploadedImageUrl) {
+            updateData.avatar_url = uploadedImageUrl; // Using avatar_url for shop logo for now
+        }
+
         const { error } = await supabase
             .from('profiles')
-            .update({
-                is_seller: true,
-                shop_name: shopName,
-                shop_description: shopDesc,
-                role: 'Penjual' // Optional, if we want to change role text too
-            })
+            .update(updateData)
             .eq('id', user.id);
 
         if (error) {
             alert("Gagal menyimpan: " + error.message);
             setLoading(false);
         } else {
-            // Success
-            router.push("/dashboard"); // Redirect to Seller Dashboard as requested
+            // Success - Redirect to Profile as requested
+            router.push("/profile");
         }
     };
 
@@ -59,8 +100,21 @@ export default function SetupShop() {
 
             <main className="flex-1 pt-20 px-6 pb-24 max-w-md mx-auto w-full">
                 <div className="text-center mb-8">
-                    <div className="inline-flex justify-center items-center size-20 rounded-full bg-blue-100 text-blue-600 mb-4">
-                        <span className="material-symbols-outlined text-[40px]">storefront</span>
+                    <div className="inline-flex justify-center items-center size-24 rounded-full bg-slate-100 dark:bg-slate-800 mb-4 overflow-hidden border-2 border-dashed border-primary relative cursor-pointer group">
+                        {previewUrl ? (
+                            <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+                        ) : (
+                            <span className="material-symbols-outlined text-[40px] text-primary">add_a_photo</span>
+                        )}
+                        <input
+                            type="file"
+                            accept="image/*"
+                            onChange={handleImageChange}
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
+                        <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white text-xs font-bold">Ubah</span>
+                        </div>
                     </div>
                     <h2 className="text-2xl font-bold mb-2">Atur Toko Anda</h2>
                     <p className="text-slate-500 text-sm">Lengkapi detail di bawah ini untuk mulai berjualan di Segora.</p>

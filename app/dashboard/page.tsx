@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Item } from "@/utils/types";
+import BottomNav from "@/components/BottomNav";
 
 export default function Dashboard() {
     const router = useRouter();
@@ -32,7 +33,7 @@ export default function Dashboard() {
             setProfile(profile);
 
             if (!profile?.is_seller) {
-                router.replace("/setup-shop");
+                router.replace("/profile");
                 return;
             }
 
@@ -215,8 +216,9 @@ export default function Dashboard() {
                 </Link>
 
                 {/* Bottom Navigation Spacer */}
-                <div className="h-10"></div>
+                <div className="h-20"></div>
             </div>
+            <BottomNav />
         </div>
     );
 }

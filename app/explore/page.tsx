@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Category, Item } from "@/utils/types";
 import BottomNav from "@/components/BottomNav";
+import FilterModal from "@/components/FilterModal";
 import { useRouter } from "next/navigation";
 
 export default function Explore() {
@@ -13,31 +14,71 @@ export default function Explore() {
     const [recommendations, setRecommendations] = useState<Item[]>([]);
     const [search, setSearch] = useState("");
 
+    // Filter & Sort State
+    const [showFilterModal, setShowFilterModal] = useState(false);
+    const [filters, setFilters] = useState({
+        minPrice: '',
+        maxPrice: '',
+        minRating: 0,
+        location: '',
+        sortBy: '' // 'price_asc', 'price_desc', 'rating', 'nearest'
+    });
+
     useEffect(() => {
         async function fetchData() {
             // Fetch Categories
             const { data: catData } = await supabase.from('categories').select('*');
             if (catData) setCategories(catData);
 
-            // Fetch Items (Recommendations)
+            // Fetch Items with Filters
             const { data: { user } } = await supabase.auth.getUser();
 
             let query = supabase
                 .from('items')
-                .select('*')
-                .order('rating', { ascending: false })
-                .limit(4);
+                .select('*');
 
+            // Apply search filter
             if (search) {
                 query = query.ilike('title', `%${search}%`);
             }
+
+            // Apply price filters
+            if (filters.minPrice) {
+                query = query.gte('price', Number(filters.minPrice));
+            }
+            if (filters.maxPrice) {
+                query = query.lte('price', Number(filters.maxPrice));
+            }
+
+            // Apply rating filter
+            if (filters.minRating > 0) {
+                query = query.gte('rating', filters.minRating);
+            }
+
+            // Apply location filter
+            if (filters.location) {
+                query = query.eq('location', filters.location);
+            }
+
+            // Apply sorting
+            if (filters.sortBy === 'price_asc') {
+                query = query.order('price', { ascending: true });
+            } else if (filters.sortBy === 'price_desc') {
+                query = query.order('price', { ascending: false });
+            } else if (filters.sortBy === 'rating') {
+                query = query.order('rating', { ascending: false });
+            } else {
+                query = query.order('created_at', { ascending: false }); // Default: newest first
+            }
+
+            query = query.limit(20); // Increase limit for better results
 
             const { data: itemData } = await query;
             if (itemData) setRecommendations(itemData);
         }
         const timeout = setTimeout(fetchData, 500);
         return () => clearTimeout(timeout);
-    }, [search]);
+    }, [search, filters]);
 
     const handleInteraction = async (action: () => void) => {
         const { data: { session } } = await supabase.auth.getSession();
@@ -56,13 +97,13 @@ export default function Explore() {
                     <h1 className="text-2xl font-extrabold tracking-tight">Eksplorasi</h1>
                     <div className="flex gap-3">
                         <button
-                            onClick={() => handleInteraction(() => console.log('Cart'))}
+                            onClick={() => handleInteraction(() => alert('Fitur Cart akan segera hadir!'))}
                             className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center cursor-pointer hover:bg-slate-300/50 dark:hover:bg-slate-700/50 transition-colors"
                         >
                             <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
                         </button>
                         <button
-                            onClick={() => handleInteraction(() => console.log('Notifs'))}
+                            onClick={() => handleInteraction(() => router.push('/profile'))}
                             className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center cursor-pointer hover:bg-slate-300/50 dark:hover:bg-slate-700/50 transition-colors"
                         >
                             <span className="material-symbols-outlined text-[24px]">notifications</span>
@@ -82,7 +123,10 @@ export default function Explore() {
                                 value={search}
                                 onChange={(e) => setSearch(e.target.value)}
                             />
-                            <button className="pr-4 flex items-center justify-center text-slate-400">
+                            <button
+                                onClick={() => setShowFilterModal(true)}
+                                className="pr-4 flex items-center justify-center text-slate-400 hover:text-primary transition-colors cursor-pointer"
+                            >
                                 <span className="material-symbols-outlined text-[20px]">tune</span>
                             </button>
                         </div>
@@ -90,19 +134,31 @@ export default function Explore() {
                 </div>
                 {/* Filter Chips */}
                 <div className="flex gap-2 overflow-x-auto hide-scrollbar pb-2">
-                    <button className="whitespace-nowrap px-4 py-2 rounded-full bg-primary text-white text-sm font-semibold flex items-center gap-1">
+                    <button
+                        onClick={() => setShowFilterModal(true)}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 ${(filters.minPrice || filters.maxPrice) ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`}
+                    >
                         <span>Harga</span>
                         <span className="material-symbols-outlined text-[16px]">keyboard_arrow_down</span>
                     </button>
-                    <button className="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold flex items-center gap-1">
+                    <button
+                        onClick={() => setShowFilterModal(true)}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 ${filters.minRating > 0 ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`}
+                    >
                         <span>Rating</span>
                         <span className="material-symbols-outlined text-[16px]">star</span>
                     </button>
-                    <button className="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold flex items-center gap-1">
+                    <button
+                        onClick={() => setShowFilterModal(true)}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold flex items-center gap-1 ${filters.location ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`}
+                    >
                         <span>Lokasi</span>
                         <span className="material-symbols-outlined text-[16px]">location_on</span>
                     </button>
-                    <button className="whitespace-nowrap px-4 py-2 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-sm font-semibold">
+                    <button
+                        onClick={() => setFilters(prev => ({ ...prev, sortBy: 'nearest' }))}
+                        className={`whitespace-nowrap px-4 py-2 rounded-full text-sm font-semibold ${filters.sortBy === 'nearest' ? 'bg-primary text-white' : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700'}`}
+                    >
                         Terdekat
                     </button>
                 </div>
@@ -201,6 +257,12 @@ export default function Explore() {
             </main>
             {/* Bottom Navigation Bar */}
             <BottomNav />
+            <FilterModal
+                showModal={showFilterModal}
+                setShowModal={setShowFilterModal}
+                filters={filters}
+                setFilters={setFilters}
+            />
         </>
     );
 }

@@ -3,6 +3,7 @@
 import BottomNav from "@/components/BottomNav";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function Profile() {
@@ -47,10 +48,13 @@ export default function Profile() {
                         </div>
                         {/* Placeholder for menu items */}
                         <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                            <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                            <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
                                 <span className="material-symbols-outlined text-gray-500">list_alt</span>
-                                <span>Tawaran Saya</span>
-                            </div>
+                                <div>
+                                    <p className="font-semibold text-sm">Dashboard Penjual</p>
+                                    <p className="text-xs text-slate-400">Kelola tawaran & statistik</p>
+                                </div>
+                            </Link>
                             <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
                                 <span className="material-symbols-outlined text-gray-500">favorite</span>
                                 <span>Disukai</span>

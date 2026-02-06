@@ -4,29 +4,47 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Item } from "@/utils/types";
+import BottomNav from "@/components/BottomNav";
+
+import { useRouter } from "next/navigation";
 
 export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
+  const [search, setSearch] = useState("");
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchItems() {
-      const { data, error } = await supabase
+      let query = supabase
         .from('items')
-        .select(`
-          *,
-          category:categories(name)
-        `)
+        .select(`*, category:categories(name)`)
         .order('created_at', { ascending: false });
 
+      if (search) {
+        query = query.ilike('title', `%${search}%`);
+      }
+
+      const { data } = await query;
       if (data) setItems(data);
     }
-    fetchItems();
-  }, []);
+    const timeout = setTimeout(fetchItems, 500);
+    return () => clearTimeout(timeout);
+  }, [search]);
+
+  const handleInteraction = async (action: () => void) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push("/login");
+    } else {
+      action();
+    }
+  };
 
   return (
     <>
-      {/* Header Section */}
+      {/* ... Header ... */}
       <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md pb-2">
+        {/* ... (Kept existing header code) ... */}
         {/* Top App Bar */}
         <div className="flex items-center p-4 pb-0 justify-between">
           <div className="flex items-center gap-2">
@@ -54,7 +72,8 @@ export default function Home() {
               <input
                 className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 text-[#0d171b] dark:text-white placeholder:text-[#4c809a] px-3 text-sm font-normal"
                 placeholder="Cari apa hari ini?"
-                defaultValue=""
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </label>
@@ -129,11 +148,17 @@ export default function Home() {
                   </p>
                 </div>
                 <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
-                  <button className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20">
+                  <button
+                    onClick={() => handleInteraction(() => router.push(`/messages`))}
+                    className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
+                  >
                     <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
                     <span className="truncate">Chat Penjual</span>
                   </button>
-                  <button className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a]">
+                  <button
+                    onClick={() => handleInteraction(() => console.log('Liked!'))} // Placeholder like
+                    className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
                     <span className="material-symbols-outlined">favorite</span>
                   </button>
                 </div>
@@ -149,34 +174,7 @@ export default function Home() {
         )}
       </main>
       {/* Bottom Navigation Bar (iOS Style) */}
-      <nav className="fixed bottom-0 w-full bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-100 dark:border-slate-800 px-6 py-2 pb-6 flex justify-between items-center">
-        <div className="flex flex-col items-center gap-1 text-primary">
-          <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: "'FILL' 1" }}>home</span>
-          <span className="text-[10px] font-bold">Beranda</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-[#4c809a]">
-          <Link href="/explore" className="flex flex-col items-center gap-1 text-[#4c809a]">
-            <span className="material-symbols-outlined text-[26px]">explore</span>
-            <span className="text-[10px] font-medium">Jelajah</span>
-          </Link>
-        </div>
-        <div className="flex flex-col items-center">
-          <Link href="/create-offer">
-            <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
-              <span className="material-symbols-outlined text-[28px]">add</span>
-            </div>
-          </Link>
-          <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-[#4c809a]">
-          <span className="material-symbols-outlined text-[26px]">chat_bubble</span>
-          <span className="text-[10px] font-medium">Pesan</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 text-[#4c809a]">
-          <span className="material-symbols-outlined text-[26px]">person</span>
-          <span className="text-[10px] font-medium">Profil</span>
-        </div>
-      </nav>
+      <BottomNav />
 
     </>
   );

@@ -2,9 +2,46 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { supabase } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function CreateOffer() {
+    const router = useRouter();
     const [offerType, setOfferType] = useState("Produk");
+    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState({
+        title: "",
+        description: "",
+        price: "",
+        category: "Elektronik",
+    });
+
+    const handleSubmit = async () => {
+        setLoading(true);
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push("/login");
+            return;
+        }
+
+        const { error } = await supabase.from('items').insert({
+            title: formData.title,
+            description: formData.description,
+            price: Number(formData.price),
+            category_id: 1, // Default to 1
+            seller_name: session.user.email?.split('@')[0] || "User",
+            rating: 5.0,
+            image_url: "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY",
+            offer_type: offerType
+        });
+
+        if (!error) {
+            router.push("/");
+        } else {
+            alert("Gagal: " + error.message);
+        }
+        setLoading(false);
+    };
 
     return (
         <>
@@ -51,8 +88,8 @@ export default function CreateOffer() {
                                 <label
                                     key={type}
                                     className={`flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-full px-2 text-sm font-semibold transition-all ${offerType === type
-                                            ? "bg-white dark:bg-slate-700 shadow-sm text-primary"
-                                            : "text-slate-500 dark:text-slate-400"
+                                        ? "bg-white dark:bg-slate-700 shadow-sm text-primary"
+                                        : "text-slate-500 dark:text-slate-400"
                                         }`}
                                 >
                                     <span className="truncate">{type}</span>
@@ -102,6 +139,8 @@ export default function CreateOffer() {
                                 className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
                                 placeholder="Contoh: Joki Tugas Kalkulus, Sepatu Compass..."
                                 type="text"
+                                value={formData.title}
+                                onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                             />
                         </div>
                         <div className="flex flex-col gap-2">
@@ -110,7 +149,8 @@ export default function CreateOffer() {
                                 {["Elektronik", "Akademik", "Fashion", "Makanan"].map((cat) => (
                                     <button
                                         key={cat}
-                                        className="shrink-0 px-5 py-2 rounded-full bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-xs font-bold hover:bg-primary hover:text-white transition-colors"
+                                        onClick={() => setFormData({ ...formData, category: cat })}
+                                        className={`shrink-0 px-5 py-2 rounded-full text-xs font-bold transition-colors ${formData.category === cat ? "bg-primary text-white" : "bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-primary hover:text-white"}`}
                                     >
                                         {cat}
                                     </button>
@@ -123,6 +163,8 @@ export default function CreateOffer() {
                                 className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl px-5 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all resize-none"
                                 placeholder="Ceritakan detail tawaran Anda, kondisi barang, atau cakupan jasa..."
                                 rows={4}
+                                value={formData.description}
+                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                             ></textarea>
                         </div>
                         <div className="flex flex-col gap-2">
@@ -133,6 +175,8 @@ export default function CreateOffer() {
                                     className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full pl-12 pr-5 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all font-bold"
                                     placeholder="0"
                                     type="number"
+                                    value={formData.price}
+                                    onChange={(e) => setFormData({ ...formData, price: e.target.value })}
                                 />
                             </div>
                         </div>
@@ -169,8 +213,12 @@ export default function CreateOffer() {
 
                 {/* Fixed Footer CTA */}
                 <footer className="fixed bottom-0 left-0 right-0 max-w-md mx-auto p-4 bg-background-light dark:bg-background-dark border-t border-slate-200 dark:border-slate-800">
-                    <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2">
-                        <span>Terbitkan Tawaran</span>
+                    <button
+                        onClick={handleSubmit}
+                        disabled={loading}
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 disabled:opacity-70"
+                    >
+                        <span>{loading ? "Menerbitkan..." : "Terbitkan Tawaran"}</span>
                         <span className="material-symbols-outlined text-lg">send</span>
                     </button>
                 </footer>

@@ -3,19 +3,52 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
+import { supabase } from "@/utils/supabase/client";
+import { useRouter } from "next/navigation";
 
 export default function Login() {
+    const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const handleLogin = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+            if (error) throw error;
+            router.push("/");
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleGoogleLogin = async () => {
+        await supabase.auth.signInWithOAuth({
+            provider: "google",
+            options: {
+                redirectTo: `${window.location.origin}/auth/callback`,
+            },
+        });
+    };
 
     return (
         <div className="relative flex h-full min-h-screen w-full flex-col max-w-[480px] mx-auto overflow-x-hidden">
             {/* Top App Bar */}
             <div className="flex items-center bg-transparent p-4 pb-2 justify-between">
-                <button className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
+                <Link href="/" className="p-2 rounded-full hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors">
                     <span className="material-symbols-outlined text-[#0d171b] dark:text-white">
                         arrow_back_ios_new
                     </span>
-                </button>
+                </Link>
                 <h2 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">
                     Masuk
                 </h2>
@@ -34,6 +67,11 @@ export default function Login() {
 
                 {/* Form Section */}
                 <div className="space-y-4 pt-4">
+                    {error && (
+                        <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
+                            {error}
+                        </div>
+                    )}
                     {/* Email Field */}
                     <div className="flex flex-wrap items-end gap-4">
                         <label className="flex flex-col min-w-40 flex-1">
@@ -44,6 +82,8 @@ export default function Login() {
                                 className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-full text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-slate-700 bg-white dark:bg-slate-900 h-14 placeholder:text-[#4c809a] px-6 text-base font-normal leading-normal transition-all"
                                 placeholder="Alamat Email"
                                 type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </label>
                     </div>
@@ -59,6 +99,8 @@ export default function Login() {
                                     className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-full text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-slate-700 bg-white dark:bg-slate-900 h-14 placeholder:text-[#4c809a] px-6 pr-14 text-base font-normal leading-normal transition-all"
                                     placeholder="Masukkan kata sandi"
                                     type={showPassword ? "text" : "password"}
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
                                 />
                                 <div
                                     className="absolute right-5 top-1/2 -translate-y-1/2 text-[#4c809a] cursor-pointer"
@@ -85,8 +127,12 @@ export default function Login() {
 
                 {/* Action Buttons */}
                 <div className="mt-8 space-y-4">
-                    <button className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
-                        Masuk
+                    <button
+                        onClick={handleLogin}
+                        disabled={loading}
+                        className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+                    >
+                        {loading ? "Memuat..." : "Masuk"}
                     </button>
 
                     <div className="flex items-center gap-4 py-2">
@@ -95,7 +141,10 @@ export default function Login() {
                         <div className="h-[1px] flex-1 bg-[#cfdfe7] dark:bg-slate-700"></div>
                     </div>
 
-                    <button className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-900 border border-[#cfdfe7] dark:border-slate-700 py-4 rounded-full text-[#0d171b] dark:text-white font-semibold transition-all hover:bg-slate-50 dark:hover:bg-slate-800">
+                    <button
+                        onClick={handleGoogleLogin}
+                        className="w-full flex items-center justify-center gap-3 bg-white dark:bg-slate-900 border border-[#cfdfe7] dark:border-slate-700 py-4 rounded-full text-[#0d171b] dark:text-white font-semibold transition-all hover:bg-slate-50 dark:hover:bg-slate-800"
+                    >
                         <Image
                             alt="Google Logo"
                             className="w-6 h-6"

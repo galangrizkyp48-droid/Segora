@@ -4,10 +4,14 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Category, Item } from "@/utils/types";
+import BottomNav from "@/components/BottomNav";
+import { useRouter } from "next/navigation";
 
 export default function Explore() {
+    const router = useRouter();
     const [categories, setCategories] = useState<Category[]>([]);
     const [recommendations, setRecommendations] = useState<Item[]>([]);
+    const [search, setSearch] = useState("");
 
     useEffect(() => {
         async function fetchData() {
@@ -16,15 +20,31 @@ export default function Explore() {
             if (catData) setCategories(catData);
 
             // Fetch Items (Recommendations)
-            const { data: itemData } = await supabase
+            let query = supabase
                 .from('items')
                 .select('*')
-                .order('rating', { ascending: false }) // Recommend highly rated
+                .order('rating', { ascending: false })
                 .limit(4);
+
+            if (search) {
+                query = query.ilike('title', `%${search}%`);
+            }
+
+            const { data: itemData } = await query;
             if (itemData) setRecommendations(itemData);
         }
-        fetchData();
-    }, []);
+        const timeout = setTimeout(fetchData, 500);
+        return () => clearTimeout(timeout);
+    }, [search]);
+
+    const handleInteraction = async (action: () => void) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push("/login");
+        } else {
+            action();
+        }
+    };
 
     return (
         <>
@@ -33,10 +53,16 @@ export default function Explore() {
                 <div className="flex items-center justify-between mb-4">
                     <h1 className="text-2xl font-extrabold tracking-tight">Eksplorasi</h1>
                     <div className="flex gap-3">
-                        <button className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center">
+                        <button
+                            onClick={() => handleInteraction(() => console.log('Cart'))}
+                            className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center"
+                        >
                             <span className="material-symbols-outlined text-[24px]">shopping_cart</span>
                         </button>
-                        <button className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center">
+                        <button
+                            onClick={() => handleInteraction(() => console.log('Notifs'))}
+                            className="p-2 rounded-full bg-slate-200/50 dark:bg-slate-800/50 flex items-center justify-center"
+                        >
                             <span className="material-symbols-outlined text-[24px]">notifications</span>
                         </button>
                     </div>
@@ -51,6 +77,8 @@ export default function Explore() {
                             <input
                                 className="form-input flex w-full min-w-0 flex-1 border-none bg-transparent focus:outline-0 focus:ring-0 h-full placeholder:text-slate-400 text-base font-medium px-3"
                                 placeholder="Cari jasa atau produk..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
                             />
                             <button className="pr-4 flex items-center justify-center text-slate-400">
                                 <span className="material-symbols-outlined text-[20px]">tune</span>
@@ -130,7 +158,10 @@ export default function Explore() {
                                         className="w-full h-full bg-cover bg-center"
                                         style={{ backgroundImage: `url("${item.image_url}")` }}
                                     ></div>
-                                    <button className="absolute top-2 right-2 size-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm">
+                                    <button
+                                        onClick={() => handleInteraction(() => console.log('Fav'))}
+                                        className="absolute top-2 right-2 size-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm"
+                                    >
                                         <span className="material-symbols-outlined text-[18px]">favorite</span>
                                     </button>
                                 </div>
@@ -156,33 +187,7 @@ export default function Explore() {
                 </section>
             </main>
             {/* Bottom Navigation Bar */}
-            <nav className="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-lg border-t border-slate-200 dark:border-slate-800 px-6 py-3 pb-8 z-50">
-                <div className="flex items-center justify-between">
-                    <Link href="/" className="flex flex-col items-center gap-1 text-slate-400">
-                        <span className="material-symbols-outlined text-[24px]">home</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Home</span>
-                    </Link>
-                    <button className="flex flex-col items-center gap-1 text-primary">
-                        <span className="material-symbols-outlined text-[24px]" style={{ fontVariationSettings: "'FILL' 1" }}>explore</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Eksplor</span>
-                    </button>
-                    <div className="relative -top-6">
-                        <Link href="/create-offer">
-                            <button className="size-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center">
-                                <span className="material-symbols-outlined text-[32px]">add</span>
-                            </button>
-                        </Link>
-                    </div>
-                    <button className="flex flex-col items-center gap-1 text-slate-400">
-                        <span className="material-symbols-outlined text-[24px]">forum</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Pesan</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-1 text-slate-400">
-                        <span className="material-symbols-outlined text-[24px]">person</span>
-                        <span className="text-[10px] font-bold uppercase tracking-wider">Profil</span>
-                    </button>
-                </div>
-            </nav>
+            <BottomNav />
         </>
     );
 }

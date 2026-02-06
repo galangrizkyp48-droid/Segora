@@ -81,14 +81,15 @@ export default function CreateOffer() {
             uploadedImageUrl = publicUrl;
         }
 
-        // Fetch Seller Profile to get Shop Name
+        // Fetch Seller Profile to get Shop Name and Avatar
         const { data: profile } = await supabase
             .from('profiles')
-            .select('shop_name')
+            .select('shop_name, avatar_url')
             .eq('id', user.id)
             .single();
 
         const sellerName = profile?.shop_name || session.user.email?.split('@')[0] || "User";
+        const sellerAvatar = profile?.avatar_url || "https://lh3.googleusercontent.com/aida-public/AB6AXuAymC9c_OwO7PvXFaY-gQhUbdFNkGmB1_WNu8ETZsm2ybZYLx2k5UoAnJEIWv7hmFsR0EzUjVnp2YSFU2u6lkpQmF81-6hHETCZpTwmvgDzh-geNqTs7h4Ot2J6D4dvQjr8BRcKvp_L9bsPK_TN2OzwHjKKS6PuTZgh0BmSlHzf0gd_QDhlcX_CbvUhxyesNoHT2XmYKlYypMt_c0ILa-rC5VgMrF0WyWnm9mljDSPkj19ZlxYLUsfh3PHNo6KZBVLHHssp_S_87qY";
 
         const { error } = await supabase.from('items').insert({
             title: formData.title,
@@ -96,6 +97,7 @@ export default function CreateOffer() {
             price: Number(formData.price),
             category_id: "00000000-0000-0000-0000-000000000001", // TODO: Use real Category ID
             seller_name: sellerName,
+            seller_avatar: sellerAvatar, // Fix: Include seller_avatar
             rating: 5.0,
             image_url: uploadedImageUrl,
             offer_type: offerType,

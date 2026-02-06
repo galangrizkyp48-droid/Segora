@@ -111,10 +111,10 @@ export default function Explore() {
                 {/* Categories Grid */}
                 <section className="mt-6">
                     <h3 className="text-lg font-bold mb-4">Kategori</h3>
-                    <div className="grid grid-cols-4 gap-4">
+                    <div className="flex overflow-x-auto gap-4 pb-4 px-1 -mx-1 snap-x no-scrollbar">
                         {categories.length > 0 ? (
                             categories.map((cat) => (
-                                <div key={cat.id} className="flex flex-col items-center gap-2">
+                                <div key={cat.id} className="flex-none w-[70px] flex flex-col items-center gap-2 snap-center">
                                     <div className={`size-14 rounded-full flex items-center justify-center ${cat.color_bg} ${cat.color_text}`}>
                                         <span className="material-symbols-outlined text-[28px]">{cat.icon}</span>
                                     </div>

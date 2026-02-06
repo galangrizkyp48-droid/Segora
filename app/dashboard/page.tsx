@@ -70,26 +70,26 @@ export default function Dashboard() {
                 <div className="flex flex-wrap gap-3 p-4">
                     <div className="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                         <p className="text-slate-500 text-xs font-medium leading-normal uppercase tracking-wider">Dilihat</p>
-                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">1.2k</p>
+                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">0</p>
                         <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-sm text-[#078836]">trending_up</span>
-                            <p className="text-[#078836] text-xs font-semibold">+12%</p>
+                            <span className="material-symbols-outlined text-sm text-slate-300">remove</span>
+                            <p className="text-slate-400 text-xs font-semibold">-</p>
                         </div>
                     </div>
                     <div className="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                         <p className="text-slate-500 text-xs font-medium leading-normal uppercase tracking-wider">Prospek</p>
-                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">45</p>
+                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">0</p>
                         <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-sm text-[#078836]">trending_up</span>
-                            <p className="text-[#078836] text-xs font-semibold">+5%</p>
+                            <span className="material-symbols-outlined text-sm text-slate-300">remove</span>
+                            <p className="text-slate-400 text-xs font-semibold">-</p>
                         </div>
                     </div>
                     <div className="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
                         <p className="text-slate-500 text-xs font-medium leading-normal uppercase tracking-wider">Penjualan</p>
-                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">12</p>
+                        <p className="text-[#0d171b] dark:text-white tracking-light text-2xl font-bold leading-tight">0</p>
                         <div className="flex items-center gap-1">
-                            <span className="material-symbols-outlined text-sm text-[#078836]">trending_up</span>
-                            <p className="text-[#078836] text-xs font-semibold">+2%</p>
+                            <span className="material-symbols-outlined text-sm text-slate-300">remove</span>
+                            <p className="text-slate-400 text-xs font-semibold">-</p>
                         </div>
                     </div>
                 </div>

@@ -152,34 +152,36 @@ export default function Explore() {
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         {recommendations.length > 0 ? recommendations.map((item) => (
-                            <div key={item.id} className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700">
-                                <div className="aspect-square relative">
-                                    <div
-                                        className="w-full h-full bg-cover bg-center"
-                                        style={{ backgroundImage: `url("${item.image_url}")` }}
-                                    ></div>
-                                    <button
-                                        onClick={() => handleInteraction(() => console.log('Fav'))}
-                                        className="absolute top-2 right-2 size-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm"
-                                    >
-                                        <span className="material-symbols-outlined text-[18px]">favorite</span>
-                                    </button>
-                                </div>
-                                <div className="p-3">
-                                    <h4 className="font-bold text-sm line-clamp-2 mb-1">{item.title}</h4>
-                                    <div className="flex items-center gap-1 mb-2">
-                                        <span className="material-symbols-outlined text-[14px] text-yellow-400 fill-1" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                        <span className="text-[12px] font-bold">{item.rating || 0}</span>
-                                        <span className="text-[12px] text-slate-400 font-medium">({item.reviews_count || 0})</span>
+                            <Link href={`/offer/${item.id}`} key={item.id} className="block">
+                                <div className="bg-white dark:bg-slate-800 rounded-xl overflow-hidden shadow-sm border border-slate-100 dark:border-slate-700 h-full">
+                                    <div className="aspect-square relative">
+                                        <div
+                                            className="w-full h-full bg-cover bg-center"
+                                            style={{ backgroundImage: `url("${item.image_url}")` }}
+                                        ></div>
+                                        <button
+                                            onClick={(e) => { e.preventDefault(); handleInteraction(() => console.log('Fav')); }}
+                                            className="absolute top-2 right-2 size-8 bg-white/80 dark:bg-slate-900/80 backdrop-blur rounded-full flex items-center justify-center shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-[18px]">favorite</span>
+                                        </button>
                                     </div>
-                                    <div className="flex items-center justify-between">
-                                        <span className="text-primary font-extrabold text-sm">
-                                            {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
-                                        </span>
-                                        <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">{item.seller_name}</span>
+                                    <div className="p-3">
+                                        <h4 className="font-bold text-sm line-clamp-2 mb-1">{item.title}</h4>
+                                        <div className="flex items-center gap-1 mb-2">
+                                            <span className="material-symbols-outlined text-[14px] text-yellow-400 fill-1" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
+                                            <span className="text-[12px] font-bold">{item.rating || 0}</span>
+                                            <span className="text-[12px] text-slate-400 font-medium">({item.reviews_count || 0})</span>
+                                        </div>
+                                        <div className="flex items-center justify-between">
+                                            <span className="text-primary font-extrabold text-sm">
+                                                {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                                            </span>
+                                            <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">{item.seller_name}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Link>
                         )) : (
                             <div className="col-span-2 text-center text-xs text-slate-400">Loading recommendations...</div>
                         )}

@@ -108,62 +108,64 @@ export default function Home() {
       <main className="px-4 pb-24">
         {items.map((item) => (
           <div key={item.id} className="mb-5 @container">
-            <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden">
-              <div className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                    {item.seller_avatar ? (
-                      <div
-                        className="w-full h-full bg-cover bg-center"
-                        style={{ backgroundImage: `url("${item.seller_avatar}")` }}
-                      ></div>
-                    ) : (
-                      <span className="material-symbols-outlined text-[18px] text-primary">person</span>
-                    )}
+            <Link href={`/offer/${item.id}`}>
+              <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                <div className="p-3 flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                      {item.seller_avatar ? (
+                        <div
+                          className="w-full h-full bg-cover bg-center"
+                          style={{ backgroundImage: `url("${item.seller_avatar}")` }}
+                        ></div>
+                      ) : (
+                        <span className="material-symbols-outlined text-[18px] text-primary">person</span>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-[#0d171b] dark:text-white text-xs font-bold leading-none">{item.seller_name}</p>
+                      <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">2 jam lalu • {item.seller_major || 'Umum'}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[#0d171b] dark:text-white text-xs font-bold leading-none">{item.seller_name}</p>
-                    <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">2 jam lalu • {item.seller_major || 'Umum'}</p>
+                  <span className="material-symbols-outlined text-[#4c809a] text-[20px]">more_horiz</span>
+                </div>
+                <div className="px-3">
+                  <div
+                    className="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-lg"
+                    style={{ backgroundImage: `url("${item.image_url}")` }}
+                  ></div>
+                </div>
+                <div className="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+                  <div className="flex justify-between items-start">
+                    <h3 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight">{item.title}</h3>
+                    <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                      {(item as any).category?.name || 'UMUM'}
+                    </span>
+                  </div>
+                  <div className="mt-1">
+                    <p className="text-[#4c809a] dark:text-slate-400 text-sm font-normal leading-relaxed">{item.description}</p>
+                    <p className="text-primary text-base font-bold mt-2">
+                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleInteraction(() => router.push(`/messages`)); }}
+                      className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
+                    >
+                      <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
+                      <span className="truncate">Chat Penjual</span>
+                    </button>
+                    <button
+                      onClick={(e) => { e.preventDefault(); handleInteraction(() => console.log('Liked!')); }}
+                      className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                    >
+                      <span className="material-symbols-outlined">favorite</span>
+                    </button>
                   </div>
                 </div>
-                <span className="material-symbols-outlined text-[#4c809a] text-[20px]">more_horiz</span>
               </div>
-              <div className="px-3">
-                <div
-                  className="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-lg"
-                  style={{ backgroundImage: `url("${item.image_url}")` }}
-                ></div>
-              </div>
-              <div className="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
-                <div className="flex justify-between items-start">
-                  <h3 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight">{item.title}</h3>
-                  <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">
-                    {(item as any).category?.name || 'UMUM'}
-                  </span>
-                </div>
-                <div className="mt-1">
-                  <p className="text-[#4c809a] dark:text-slate-400 text-sm font-normal leading-relaxed">{item.description}</p>
-                  <p className="text-primary text-base font-bold mt-2">
-                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
-                  </p>
-                </div>
-                <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
-                  <button
-                    onClick={() => handleInteraction(() => router.push(`/messages`))}
-                    className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
-                  >
-                    <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
-                    <span className="truncate">Chat Penjual</span>
-                  </button>
-                  <button
-                    onClick={() => handleInteraction(() => console.log('Liked!'))} // Placeholder like
-                    className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                  >
-                    <span className="material-symbols-outlined">favorite</span>
-                  </button>
-                </div>
-              </div>
-            </div>
+            </Link>
           </div>
         ))}
 

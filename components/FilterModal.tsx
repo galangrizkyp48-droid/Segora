@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { Dispatch, SetStateAction } from "react";
 
@@ -40,7 +40,6 @@ export default function FilterModal({ showModal, setShowModal, filters, setFilte
                     </button>
                 </div>
 
-                {/* Price Range Filter */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold mb-3">Rentang Harga</label>
                     <div className="flex gap-3">
@@ -62,7 +61,6 @@ export default function FilterModal({ showModal, setShowModal, filters, setFilte
                     </div>
                 </div>
 
-                {/* Rating Filter */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold mb-3">Rating Minimum</label>
                     <div className="flex gap-2">
@@ -78,43 +76,39 @@ export default function FilterModal({ showModal, setShowModal, filters, setFilte
                     </div>
                 </div>
 
-                {/* Sort By */}
                 <div className="mb-6">
                     <label className="block text-sm font-bold mb-3">Urutkan</label>
                     <div className="grid grid-cols-2 gap-3">
-                        {[['', 'Terbaru'], ['price_asc', 'Harga Terend
-
-ah'], ['price_desc', 'Harga Tertinggi'], ['rating', 'Rating Tertinggi']].map(([value, label]) => (
-                            < button
-                                key = { value }
-                                onClick = {() => setFilters(prev => ({...prev, sortBy: value }))}
-                        className={`py-2 rounded-lg text-sm font-semibold ${filters.sortBy === value ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
+                        {[['', 'Terbaru'], ['price_asc', 'Harga Terendah'], ['price_desc', 'Harga Tertinggi'], ['rating', 'Rating Tertinggi']].map(([value, label]) => (
+                            <button
+                                key={value}
+                                onClick={() => setFilters(prev => ({ ...prev, sortBy: value }))}
+                                className={`py-2 rounded-lg text-sm font-semibold ${filters.sortBy === value ? 'bg-primary text-white' : 'bg-slate-100 dark:bg-slate-800'}`}
                             >
-                        {label}
-                    </button>
+                                {label}
+                            </button>
                         ))}
+                    </div>
+                </div>
+
+                <div className="flex gap-3 mt-8">
+                    <button
+                        onClick={() => {
+                            setFilters({ minPrice: '', maxPrice: '', minRating: 0, location: '', sortBy: '' });
+                            setShowModal(false);
+                        }}
+                        className="flex-1 py-3 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold"
+                    >
+                        Reset
+                    </button>
+                    <button
+                        onClick={() => setShowModal(false)}
+                        className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold"
+                    >
+                        Terapkan
+                    </button>
                 </div>
             </div>
-
-            {/* Action Buttons */}
-            <div className="flex gap-3 mt-8">
-                <button
-                    onClick={() => {
-                        setFilters({ minPrice: '', maxPrice: '', minRating: 0, location: '', sortBy: '' });
-                        setShowModal(false);
-                    }}
-                    className="flex-1 py-3 rounded-lg border border-slate-300 dark:border-slate-700 font-semibold"
-                >
-                    Reset
-                </button>
-                <button
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold"
-                >
-                    Terapkan
-                </button>
-            </div>
         </div>
-        </div >
     );
 }

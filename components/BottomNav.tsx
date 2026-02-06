@@ -41,31 +41,25 @@ export default function BottomNav() {
             </Link>
 
             <div className="flex flex-col items-center">
-                {isSeller ? (
-                    <>
-                        <Link href="/dashboard">
-                            <div className={`bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark ${isActive("/dashboard") ? "ring-2 ring-primary ring-offset-2" : ""}`}>
-                                <span className="material-symbols-outlined text-[28px]">storefront</span>
-                            </div>
-                        </Link>
-                        <span className="text-[10px] font-medium text-[#4c809a] mt-1">Toko</span>
-                    </>
-                ) : (
-                    <>
-                        <Link href="/create-offer">
-                            <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
-                                <span className="material-symbols-outlined text-[28px]">add</span>
-                            </div>
-                        </Link>
-                        <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
-                    </>
-                )}
+                <Link href="/create-offer">
+                    <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
+                        <span className="material-symbols-outlined text-[28px]">add</span>
+                    </div>
+                </Link>
+                <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
             </div>
 
             <Link href="/messages" className={`flex flex-col items-center gap-1 ${isActive("/messages") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
                 <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/messages") ? "'FILL' 1" : "'FILL' 0" }}>chat_bubble</span>
                 <span className={`text-[10px] ${isActive("/messages") ? "font-bold" : "font-medium"}`}>Pesan</span>
             </Link>
+
+            {isSeller && (
+                <Link href="/dashboard" className={`flex flex-col items-center gap-1 ${isActive("/dashboard") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
+                    <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/dashboard") ? "'FILL' 1" : "'FILL' 0" }}>storefront</span>
+                    <span className={`text-[10px] ${isActive("/dashboard") ? "font-bold" : "font-medium"}`}>Toko</span>
+                </Link>
+            )}
 
             <Link href="/profile" className={`flex flex-col items-center gap-1 ${isActive("/profile") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
                 <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/profile") ? "'FILL' 1" : "'FILL' 0" }}>person</span>

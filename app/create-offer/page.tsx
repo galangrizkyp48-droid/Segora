@@ -124,7 +124,7 @@ export default function CreateOffer() {
         });
 
         if (!error) {
-            router.push("/dashboard"); // Redirect to Dashboard after creation
+            router.push("/"); // Redirect to Homepage after creation
         } else {
             alert("Gagal: " + error.message);
         }

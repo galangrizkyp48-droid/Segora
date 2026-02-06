@@ -215,6 +215,5 @@ export default function Dashboard() {
                 <div className="h-10"></div>
             </div>
         </div>
-        </div >
     );
 }

@@ -167,9 +167,11 @@ export default function Explore() {
                         <span className="text-[10px] font-bold uppercase tracking-wider">Eksplor</span>
                     </button>
                     <div className="relative -top-6">
-                        <button className="size-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center">
-                            <span className="material-symbols-outlined text-[32px]">add</span>
-                        </button>
+                        <Link href="/create-offer">
+                            <button className="size-14 rounded-full bg-primary text-white shadow-lg shadow-primary/30 flex items-center justify-center">
+                                <span className="material-symbols-outlined text-[32px]">add</span>
+                            </button>
+                        </Link>
                     </div>
                     <button className="flex flex-col items-center gap-1 text-slate-400">
                         <span className="material-symbols-outlined text-[24px]">forum</span>

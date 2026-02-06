@@ -161,9 +161,11 @@ export default function Home() {
           </Link>
         </div>
         <div className="flex flex-col items-center">
-          <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
-            <span className="material-symbols-outlined text-[28px]">add</span>
-          </div>
+          <Link href="/create-offer">
+            <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
+              <span className="material-symbols-outlined text-[28px]">add</span>
+            </div>
+          </Link>
           <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
         </div>
         <div className="flex flex-col items-center gap-1 text-[#4c809a]">

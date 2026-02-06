@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/utils/supabase/client";
 
 export default function ReportPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -10,6 +11,19 @@ export default function ReportPage({ params }: { params: { id: string } }) {
     const [reportReason, setReportReason] = useState("");
     const [reportText, setReportText] = useState("");
     const [submitting, setSubmitting] = useState(false);
+    const [item, setItem] = useState<any>(null);
+
+    useEffect(() => {
+        const fetchItem = async () => {
+            const { data } = await supabase
+                .from('items')
+                .select('*, seller_id')
+                .eq('id', params.id)
+                .single();
+            if (data) setItem(data);
+        };
+        fetchItem();
+    }, [params.id]);
 
     const handleSubmit = async () => {
         if (rating === 0 && !reportReason) {
@@ -17,9 +31,37 @@ export default function ReportPage({ params }: { params: { id: string } }) {
             return;
         }
 
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push('/login');
+            return;
+        }
+
+        if (!item) {
+            alert('Data item tidak ditemukan');
+            return;
+        }
+
         setSubmitting(true);
-        // Mock submission
-        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Insert report to database
+        const { error } = await supabase.from('reports').insert({
+            reporter_id: session.user.id,
+            reported_user_id: item.seller_id,
+            item_id: params.id,
+            rating: rating > 0 ? rating : null,
+            review_text: reviewText || null,
+            report_reason: reportReason || null,
+            report_details: reportText || null
+        });
+
+        setSubmitting(false);
+
+        if (error) {
+            console.error('Error submitting report:', error);
+            alert('Gagal mengirim laporan. Silakan coba lagi.');
+            return;
+        }
 
         alert("Laporan dan ulasan Anda telah dikirim. Terima kasih telah membantu menjaga keamanan Segora.");
         router.back();

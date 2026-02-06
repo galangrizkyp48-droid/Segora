@@ -105,7 +105,7 @@ export default function SellerProfile({ params }: { params: { id: string } }) {
                         </div>
                         <div className="flex w-full gap-3">
                             <button
-                                onClick={() => handleInteraction(() => router.push('/messages/1'))}
+                                onClick={() => handleInteraction(() => alert('Untuk mengirim pesan, silakan klik tombol "Hubungi Penjual" di halaman produk.'))}
                                 className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-12 px-6 bg-[#e7eff3] dark:bg-gray-800 text-[#0d171b] dark:text-white text-sm font-bold leading-normal tracking-[0.015em] hover:opacity-90 transition-all"
                             >
                                 <span className="material-symbols-outlined mr-2 text-[20px]">chat_bubble</span>

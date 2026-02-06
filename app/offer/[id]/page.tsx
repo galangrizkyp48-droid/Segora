@@ -36,6 +36,58 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
         }
     };
 
+    const handleContactSeller = async () => {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            router.push("/login");
+            return;
+        }
+
+        if (!item) return;
+
+        // Check if user is trying to message themselves
+        if (item.seller_id === session.user.id) {
+            alert('Anda tidak bisa mengirim pesan ke diri sendiri!');
+            return;
+        }
+
+        // Find or create chat
+        const { data: existingChat } = await supabase
+            .from('chats')
+            .select('id')
+            .or(`and(user_a.eq.${session.user.id},user_b.eq.${item.seller_id}),and(user_a.eq.${item.seller_id},user_b.eq.${session.user.id})`)
+            .eq('item_id', item.id)
+            .single();
+
+        if (existingChat) {
+            // Chat already exists, redirect to it
+            router.push(`/messages/${existingChat.id}`);
+        } else {
+            // Create new chat
+            const { data: newChat, error } = await supabase
+                .from('chats')
+                .insert({
+                    user_a: session.user.id,
+                    user_b: item.seller_id,
+                    item_id: item.id,
+                    item_title: item.title,
+                    item_image: item.image_url
+                })
+                .select('id')
+                .single();
+
+            if (error) {
+                console.error('Error creating chat:', error);
+                alert('Gagal membuat chat. Silakan coba lagi.');
+                return;
+            }
+
+            if (newChat) {
+                router.push(`/messages/${newChat.id}`);
+            }
+        }
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Memuat...</div>;
     if (!item) return <div className="min-h-screen flex items-center justify-center text-slate-500">Tawaran tidak ditemukan</div>;
 
@@ -168,17 +220,17 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
             {/* Floating Action Bar */}
             <div className="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 flex gap-3 items-center max-w-md mx-auto">
                 <button
-                    onClick={() => handleInteraction(() => console.log('Fav'))}
+                    onClick={() => handleInteraction(() => alert('Fitur favorit akan segera hadir!'))}
                     className="flex size-14 items-center justify-center rounded-full bg-gray-100 dark:bg-slate-800 text-[#0d171b] dark:text-white shrink-0 hover:bg-gray-200 dark:hover:bg-slate-700 transition-colors"
                 >
-                    <span className="material-symbols-outlined">favorite</span>
+                    <span className="material-symbols-outlined">favorite_border</span>
                 </button>
                 <button
-                    onClick={() => handleInteraction(() => router.push('/messages/1'))}
+                    onClick={handleContactSeller}
                     className="flex-1 bg-primary text-white font-bold h-14 rounded-full flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all active:scale-95"
                 >
                     <span className="material-symbols-outlined">chat</span>
-                    <span>Chat Penjual</span>
+                    <span>Hubungi Penjual</span>
                 </button>
             </div>
         </div>

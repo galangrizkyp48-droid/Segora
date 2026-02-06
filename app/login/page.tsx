@@ -34,8 +34,8 @@ export default function Login() {
                     }
                 });
                 if (error) throw error;
-                // Success case
-                setSuccessMsg("Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun sebelum masuk.");
+                // Success case (Assumes auto-confirm is OFF in Supabase)
+                setSuccessMsg("Registrasi berhasil! Silakan masuk dengan akun Anda.");
                 setIsRegister(false); // Switch back to login view
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
@@ -53,12 +53,16 @@ export default function Login() {
     };
 
     const handleGoogleLogin = async () => {
+        // Disabled for now as requested
+        alert("Fitur ini sedang dalam tahap pengembangan.");
+        /*
         await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {
                 redirectTo: `${window.location.origin}/auth/callback`,
             },
         });
+        */
     };
 
     return (

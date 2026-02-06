@@ -66,13 +66,23 @@ export default function Profile() {
                             </div>
 
                             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mt-4">
-                                <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                    <span className="material-symbols-outlined text-gray-500">list_alt</span>
-                                    <div>
-                                        <p className="font-semibold text-sm">Dashboard Penjual</p>
-                                        <p className="text-xs text-slate-400">Kelola tawaran & statistik</p>
+                                {user.user_metadata?.is_seller || (user as any)?.is_seller ? ( // Check metadata or fallback
+                                    <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <span className="material-symbols-outlined text-gray-500">list_alt</span>
+                                        <div>
+                                            <p className="font-semibold text-sm">Dashboard Penjual</p>
+                                            <p className="text-xs text-slate-400">Kelola tawaran & statistik</p>
+                                        </div>
+                                    </Link>
+                                ) : (
+                                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-not-allowed opacity-60">
+                                        <span className="material-symbols-outlined text-gray-400">storefront</span>
+                                        <div>
+                                            <p className="font-semibold text-sm text-gray-500">Toko Belum Aktif</p>
+                                            <p className="text-xs text-gray-400">Silahkan buka toko terlebih dahulu</p>
+                                        </div>
                                     </div>
-                                </Link>
+                                )}
                                 <div
                                     onClick={() => alert("Fitur 'Disukai' akan segera hadir!")}
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"

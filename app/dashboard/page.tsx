@@ -11,6 +11,7 @@ export default function Dashboard() {
     const [user, setUser] = useState<any>(null);
     const [items, setItems] = useState<Item[]>([]);
     const [loading, setLoading] = useState(true);
+    const [profile, setProfile] = useState<any>(null);
 
     useEffect(() => {
         const checkUserAndFetchItems = async () => {
@@ -27,6 +28,8 @@ export default function Dashboard() {
                 .select('is_seller, shop_name')
                 .eq('id', session.user.id)
                 .single();
+
+            setProfile(profile);
 
             if (!profile?.is_seller) {
                 router.replace("/setup-shop");
@@ -70,7 +73,7 @@ export default function Dashboard() {
                         </div>
                     </div>
                     <div className="flex-1 px-3">
-                        <p className="text-xs text-slate-500 font-medium">Halo, {user?.email?.split('@')[0]}!</p>
+                        <p className="text-xs text-slate-500 font-medium">Halo, {profile?.shop_name || user?.email?.split('@')[0]}!</p>
                         <h2 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Dashboard Penjual</h2>
                     </div>
                     <div className="flex w-12 items-center justify-end">

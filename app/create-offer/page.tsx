@@ -67,15 +67,24 @@ export default function CreateOffer() {
             uploadedImageUrl = publicUrl;
         }
 
+        // Fetch Seller Profile to get Shop Name
+        const { data: profile } = await supabase
+            .from('profiles')
+            .select('shop_name')
+            .eq('id', user.id)
+            .single();
+
+        const sellerName = profile?.shop_name || session.user.email?.split('@')[0] || "User";
+
         const { error } = await supabase.from('items').insert({
             title: formData.title,
             description: formData.description,
             price: Number(formData.price),
             category_id: "00000000-0000-0000-0000-000000000001", // TODO: Use real Category ID
-            seller_name: session.user.email?.split('@')[0] || "User",
+            seller_name: sellerName,
             rating: 5.0,
             image_url: uploadedImageUrl,
-            offer_type: offerType,
+            offer_type: offerType, // Relies on add_offer_type.sql migration
             campus: campusId,
             seller_id: user.id
         });

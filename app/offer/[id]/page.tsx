@@ -116,7 +116,12 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
                                     </div>
                                 </div>
                             </div>
-                            <button className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-full text-sm hover:bg-primary/20 transition-colors">Profil</button>
+                            <button
+                                onClick={() => router.push(`/seller/${item.seller_id}`)}
+                                className="bg-primary/10 text-primary font-bold px-4 py-2 rounded-full text-sm hover:bg-primary/20 transition-colors"
+                            >
+                                Profil
+                            </button>
                         </div>
                     </div>
                 </div>

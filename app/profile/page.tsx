@@ -37,20 +37,22 @@ export default function Profile() {
             <main className="p-4">
                 {user ? (
                     <>
-                        <div className="px-4 py-3">
-                            <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-lg overflow-hidden relative">
-                                <div className="absolute right-0 top-0 opacity-10">
-                                    <span className="material-symbols-outlined text-[100px]">storefront</span>
+                        {!user.user_metadata?.is_seller && (
+                            <div className="px-4 py-3">
+                                <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-lg overflow-hidden relative">
+                                    <div className="absolute right-0 top-0 opacity-10">
+                                        <span className="material-symbols-outlined text-[100px]">storefront</span>
+                                    </div>
+                                    <h3 className="text-lg font-bold relative z-10">Mau Jualan?</h3>
+                                    <p className="text-sm text-blue-50 mb-3 relative z-10">Buka tokomu sendiri dan mulai hasilkan uang di kampus.</p>
+                                    <Link href="/setup-shop">
+                                        <button className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform relative z-10">
+                                            Buka Toko
+                                        </button>
+                                    </Link>
                                 </div>
-                                <h3 className="text-lg font-bold relative z-10">Mau Jualan?</h3>
-                                <p className="text-sm text-blue-50 mb-3 relative z-10">Buka tokomu sendiri dan mulai hasilkan uang di kampus.</p>
-                                <Link href="/dashboard">
-                                    <button className="bg-white text-blue-600 px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform relative z-10">
-                                        Buka Toko
-                                    </button>
-                                </Link>
                             </div>
-                        </div>
+                        )}
 
                         <div className="flex flex-col p-4 gap-1">
                             <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">

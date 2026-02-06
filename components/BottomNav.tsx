@@ -2,9 +2,29 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { supabase } from "@/utils/supabase/client";
 
 export default function BottomNav() {
     const pathname = usePathname();
+    const [isSeller, setIsSeller] = useState(false);
+
+    useEffect(() => {
+        const checkSellerStatus = async () => {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                const { data } = await supabase
+                    .from('profiles')
+                    .select('is_seller')
+                    .eq('id', session.user.id)
+                    .single();
+                if (data?.is_seller) {
+                    setIsSeller(true);
+                }
+            }
+        };
+        checkSellerStatus();
+    }, []);
 
     const isActive = (path: string) => pathname === path;
 
@@ -21,12 +41,25 @@ export default function BottomNav() {
             </Link>
 
             <div className="flex flex-col items-center">
-                <Link href="/create-offer">
-                    <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
-                        <span className="material-symbols-outlined text-[28px]">add</span>
-                    </div>
-                </Link>
-                <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
+                {isSeller ? (
+                    <>
+                        <Link href="/dashboard">
+                            <div className={`bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark ${isActive("/dashboard") ? "ring-2 ring-primary ring-offset-2" : ""}`}>
+                                <span className="material-symbols-outlined text-[28px]">storefront</span>
+                            </div>
+                        </Link>
+                        <span className="text-[10px] font-medium text-[#4c809a] mt-1">Toko</span>
+                    </>
+                ) : (
+                    <>
+                        <Link href="/create-offer">
+                            <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
+                                <span className="material-symbols-outlined text-[28px]">add</span>
+                            </div>
+                        </Link>
+                        <span className="text-[10px] font-medium text-[#4c809a] mt-1">Jual</span>
+                    </>
+                )}
             </div>
 
             <Link href="/messages" className={`flex flex-col items-center gap-1 ${isActive("/messages") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>

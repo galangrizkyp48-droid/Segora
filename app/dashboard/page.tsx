@@ -21,12 +21,22 @@ export default function Dashboard() {
             }
             setUser(session.user);
 
-            // Fetch items where seller_name matches user's email username (as per our current logic)
-            // or better yet, if we had a seller_id, we'd use that.
-            // For now, based on CreateOffer logic: seller_name: session.user.email?.split('@')[0]
+            // Check if user is a seller
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('is_seller, shop_name')
+                .eq('id', session.user.id)
+                .single();
+
+            if (!profile?.is_seller) {
+                router.replace("/setup-shop");
+                return;
+            }
+
+            // Fetch items using consistent logic (or better, use seller_id if column exists)
+            // For now, continue matching by seller_name derived from email to keep sync with CreateOffer
             const sellerName = session.user.email?.split('@')[0] || "";
 
-            // Assuming we are matching by seller_name for now as consistent with CreateOffer
             const { data } = await supabase
                 .from('items')
                 .select('*')

@@ -15,10 +15,12 @@ export default function Login() {
     const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
     const handleAuth = async () => {
         setLoading(true);
         setError(null);
+        setSuccessMsg(null);
         try {
             if (isRegister) {
                 const { error } = await supabase.auth.signUp({
@@ -31,7 +33,9 @@ export default function Login() {
                     }
                 });
                 if (error) throw error;
-                alert("Registrasi berhasil! Silakan cek email Anda untuk verifikasi.");
+                // Success case
+                setSuccessMsg("Registrasi berhasil! Silakan cek email Anda untuk verifikasi akun sebelum masuk.");
+                setIsRegister(false); // Switch back to login view
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email,
@@ -84,8 +88,18 @@ export default function Login() {
                 {/* Form Section */}
                 <div className="space-y-4 pt-4">
                     {error && (
-                        <div className="bg-red-50 text-red-500 p-3 rounded-lg text-sm text-center">
-                            {error}
+                        <div className="bg-red-50 border border-red-200 text-red-600 p-4 rounded-xl text-sm text-center flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2">
+                            <span className="material-symbols-outlined text-[20px]">error</span>
+                            {error === "Email not confirmed" ? "Mohon verifikasi email Anda terlebih dahulu." : error}
+                        </div>
+                    )}
+                    {successMsg && (
+                        <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-xl text-sm text-center flex flex-col items-center gap-1 animate-in fade-in slide-in-from-top-2">
+                            <div className="flex items-center gap-2 font-bold">
+                                <span className="material-symbols-outlined text-[20px]">check_circle</span>
+                                Berhasil Mendaftar!
+                            </div>
+                            <p>{successMsg}</p>
                         </div>
                     )}
                     {isRegister && (

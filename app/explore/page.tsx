@@ -32,6 +32,7 @@ export default function Explore() {
                 query = query.ilike('title', `%${search}%`);
             }
 
+            const { data: itemData } = await query;
             if (itemData) setRecommendations(itemData);
         }
         const timeout = setTimeout(fetchData, 500);

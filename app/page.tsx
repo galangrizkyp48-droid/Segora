@@ -20,6 +20,8 @@ export default function Home() {
         .select(`*, category:categories(name)`)
         .order('created_at', { ascending: false });
 
+      const { data: { user } } = await supabase.auth.getUser();
+
       if (search) {
         query = query.ilike('title', `%${search}%`);
       }

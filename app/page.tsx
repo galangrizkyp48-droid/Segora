@@ -147,7 +147,16 @@ export default function Home() {
                       </div>
                       <div>
                         <p className="text-[#0d171b] dark:text-white text-xs font-bold leading-none">{item.seller_name}</p>
-                        <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">2 jam lalu • {item.seller_major || 'Umum'}</p>
+                        <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">
+                          {item.location ? (
+                            <span className="flex items-center gap-0.5">
+                              <span className="material-symbols-outlined text-[10px] align-middle">location_on</span>
+                              {item.location}
+                            </span>
+                          ) : (
+                            `${item.seller_major || 'Umum'}`
+                          )}
+                        </p>
                       </div>
                     </div>
                     <span className="material-symbols-outlined text-[#4c809a] text-[20px]">more_horiz</span>

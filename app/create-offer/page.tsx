@@ -13,11 +13,25 @@ export default function CreateOffer() {
         title: "",
         description: "",
         price: "",
-        category: "Elektronik",
+        category: "", // Initialize empty, will set default based on type
+        location: "", // Add location
     });
 
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // Dynamic Categories
+    const categoryOptions: Record<string, string[]> = {
+        "Produk": ["Elektronik", "Akademik", "Fashion", "Makanan", "Buku", "Lainnya"],
+        "Jasa": ["Joki Tugas", "Desain", "Print", "Transportasi", "Les Privat", "Lainnya"],
+        "Request": ["Cari Barang", "Cari Jasa", "Lainnya"]
+    };
+
+    // Update category when offerType changes
+    const handleTypeChange = (type: string) => {
+        setOfferType(type);
+        setFormData(prev => ({ ...prev, category: categoryOptions[type][0] }));
+    };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (!e.target.files || e.target.files.length === 0) return;
@@ -84,7 +98,8 @@ export default function CreateOffer() {
             seller_name: sellerName,
             rating: 5.0,
             image_url: uploadedImageUrl,
-            offer_type: offerType, // Relies on add_offer_type.sql migration
+            offer_type: offerType,
+            location: formData.location || campusId, // Use input location or default to campus
             campus: campusId,
             seller_id: user.id
         });
@@ -153,7 +168,7 @@ export default function CreateOffer() {
                                         type="radio"
                                         value={type}
                                         checked={offerType === type}
-                                        onChange={() => setOfferType(type)}
+                                        onChange={() => handleTypeChange(type)}
                                     />
                                 </label>
                             ))}
@@ -216,7 +231,7 @@ export default function CreateOffer() {
                         <div className="flex flex-col gap-2">
                             <label className="text-slate-700 dark:text-slate-300 text-sm font-bold">Kategori</label>
                             <div className="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
-                                {["Elektronik", "Akademik", "Fashion", "Makanan"].map((cat) => (
+                                {categoryOptions[offerType].map((cat) => (
                                     <button
                                         key={cat}
                                         onClick={() => setFormData({ ...formData, category: cat })}
@@ -227,6 +242,19 @@ export default function CreateOffer() {
                                 ))}
                             </div>
                         </div>
+
+                        {/* Location Field */}
+                        <div className="flex flex-col gap-2">
+                            <label className="text-slate-700 dark:text-slate-300 text-sm font-bold">Lokasi (Opsional)</label>
+                            <input
+                                className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-5 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+                                placeholder="Contoh: Fakultas Teknik, Kantin..."
+                                type="text"
+                                value={formData.location}
+                                onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                            />
+                        </div>
+
                         <div className="flex flex-col gap-2">
                             <label className="text-slate-700 dark:text-slate-300 text-sm font-bold">Deskripsi</label>
                             <textarea

@@ -12,6 +12,7 @@ export type Item = {
     seller_name: string;
     seller_avatar: string; // URL
     seller_major: string; // e.g., 'Teknik', 'MIPA'
+    location?: string; // e.g. 'Fakultas Teknik'
     created_at: string;
     likes_count: number;
     rating?: number;

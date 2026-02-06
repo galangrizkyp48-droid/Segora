@@ -182,7 +182,10 @@ export default function Explore() {
                                                 <span className="text-primary font-extrabold text-sm">
                                                     {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
                                                 </span>
-                                                <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">{item.seller_name}</span>
+                                                <div className="flex flex-col items-end">
+                                                    <span className="text-[10px] text-slate-400 font-medium truncate max-w-[60px]">{item.seller_name}</span>
+                                                    {item.location && <span className="text-[8px] text-slate-300 truncate max-w-[80px]">{item.location}</span>}
+                                                </div>
                                             </div>
                                         </div>
                                     </div>

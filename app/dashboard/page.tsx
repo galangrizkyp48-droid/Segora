@@ -162,7 +162,10 @@ export default function Dashboard() {
                                 </div>
                                 <div className="flex gap-2 pt-2">
                                     <button className="flex-1 h-8 rounded-full border border-slate-200 dark:border-slate-700 text-xs font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">Edit</button>
-                                    <button className="flex-1 h-8 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors">
+                                    <button
+                                        onClick={() => router.push(`/boost?id=${item.id}`)}
+                                        className="flex-1 h-8 rounded-full bg-primary text-white text-xs font-bold flex items-center justify-center gap-1 hover:bg-primary/90 transition-colors"
+                                    >
                                         <span className="material-symbols-outlined text-[14px]">rocket_launch</span>
                                         Boost
                                     </button>

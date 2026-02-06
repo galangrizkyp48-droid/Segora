@@ -21,12 +21,9 @@ export default function RootLayout({
 
       // If user is logged in, check if they have a campus selected
       if (session) {
-        const { data: { user } } = await supabase.auth.getUser();
-        const campus = user?.user_metadata?.campus;
-
-        if (!campus && pathname !== '/select-campus') {
-          router.replace('/select-campus');
-        }
+        // We removed the forced redirect here because we now handle it 
+        // via the CampusPopup on the Home page (and stored in local/user metadata).
+        // This allows a smoother UX as requested.
       }
     };
 

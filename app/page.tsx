@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
+import { campuses } from "@/data/campuses";
+import CampusPopup from "@/components/CampusPopup";
 import { Item } from "@/utils/types";
 import BottomNav from "@/components/BottomNav";
 
@@ -12,6 +14,9 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [search, setSearch] = useState("");
   const router = useRouter();
+
+  // Refresh trigger for when campus is selected
+  const [refresh, setRefresh] = useState(false);
 
   useEffect(() => {
     async function fetchItems() {
@@ -26,12 +31,14 @@ export default function Home() {
         query = query.ilike('title', `%${search}%`);
       }
 
-      // Add campus filtering based on user's campus
-      if (user) {
-        const campus = user.user_metadata?.campus;
-        if (campus) {
-          query = query.eq('campus', campus);
-        }
+      // Add campus filtering based on user's campus OR local storage
+      let campus = user?.user_metadata?.campus;
+      if (!campus) {
+        campus = localStorage.getItem("selectedCampus");
+      }
+
+      if (campus) {
+        query = query.eq('campus', campus);
       }
 
       const { data } = await query;
@@ -39,12 +46,12 @@ export default function Home() {
     }
     const timeout = setTimeout(fetchItems, 500);
     return () => clearTimeout(timeout);
-  }, [search]);
+  }, [search, refresh]);
 
   const handleInteraction = async (action: () => void) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      router.push("/login");
+      router.push("/login"); // Guard for guests
     } else {
       action();
     }
@@ -52,6 +59,7 @@ export default function Home() {
 
   return (
     <>
+      <CampusPopup onSelect={() => setRefresh(prev => !prev)} />
       {/* ... Header ... */}
       <header className="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md pb-2">
         {/* ... (Kept existing header code) ... */}
@@ -63,7 +71,11 @@ export default function Home() {
             </div>
             <div>
               <p className="text-[10px] text-[#4c809a] font-medium leading-none uppercase tracking-wider">Lokasi Saya</p>
-              <h2 className="text-[#0d171b] dark:text-white text-base font-bold leading-tight">Kampus Pusat, UI</h2>
+              <h2 className="text-[#0d171b] dark:text-white text-base font-bold leading-tight">
+                {typeof window !== 'undefined' && localStorage.getItem('selectedCampus')
+                  ? campuses.find(c => c.id === localStorage.getItem('selectedCampus'))?.name
+                  : 'Pilih Kampus'}
+              </h2>
             </div>
           </div>
           <div className="flex gap-2">
@@ -116,72 +128,73 @@ export default function Home() {
       </header>
       {/* Main Feed */}
       <main className="px-4 pb-24">
-        {items.map((item) => (
-          <div key={item.id} className="mb-5 @container">
-            <Link href={`/offer/${item.id}`}>
-              <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
-                <div className="p-3 flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                      {item.seller_avatar ? (
-                        <div
-                          className="w-full h-full bg-cover bg-center"
-                          style={{ backgroundImage: `url("${item.seller_avatar}")` }}
-                        ></div>
-                      ) : (
-                        <span className="material-symbols-outlined text-[18px] text-primary">person</span>
-                      )}
+        {items.length > 0 ? (
+          items.map((item) => (
+            <div key={item.id} className="mb-5 @container">
+              <Link href={`/offer/${item.id}`}>
+                <div className="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 overflow-hidden cursor-pointer hover:shadow-md transition-shadow">
+                  <div className="p-3 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="size-8 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                        {item.seller_avatar ? (
+                          <div
+                            className="w-full h-full bg-cover bg-center"
+                            style={{ backgroundImage: `url("${item.seller_avatar}")` }}
+                          ></div>
+                        ) : (
+                          <span className="material-symbols-outlined text-[18px] text-primary">person</span>
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-[#0d171b] dark:text-white text-xs font-bold leading-none">{item.seller_name}</p>
+                        <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">2 jam lalu • {item.seller_major || 'Umum'}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[#0d171b] dark:text-white text-xs font-bold leading-none">{item.seller_name}</p>
-                      <p className="text-[#4c809a] text-[10px] leading-none mt-0.5">2 jam lalu • {item.seller_major || 'Umum'}</p>
+                    <span className="material-symbols-outlined text-[#4c809a] text-[20px]">more_horiz</span>
+                  </div>
+                  <div className="px-3">
+                    <div
+                      className="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-lg"
+                      style={{ backgroundImage: `url("${item.image_url}")` }}
+                    ></div>
+                  </div>
+                  <div className="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
+                    <div className="flex justify-between items-start">
+                      <h3 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight">{item.title}</h3>
+                      <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">
+                        {(item as any).category?.name || 'UMUM'}
+                      </span>
+                    </div>
+                    <div className="mt-1">
+                      <p className="text-[#4c809a] dark:text-slate-400 text-sm font-normal leading-relaxed">{item.description}</p>
+                      <p className="text-primary text-base font-bold mt-2">
+                        {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleInteraction(() => router.push(`/messages`)); }}
+                        className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
+                      >
+                        <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
+                        <span className="truncate">Chat Penjual</span>
+                      </button>
+                      <button
+                        onClick={(e) => { e.preventDefault(); handleInteraction(() => console.log('Liked!')); }}
+                        className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <span className="material-symbols-outlined">favorite</span>
+                      </button>
                     </div>
                   </div>
-                  <span className="material-symbols-outlined text-[#4c809a] text-[20px]">more_horiz</span>
                 </div>
-                <div className="px-3">
-                  <div
-                    className="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-lg"
-                    style={{ backgroundImage: `url("${item.image_url}")` }}
-                  ></div>
-                </div>
-                <div className="flex w-full grow flex-col items-stretch justify-center gap-1 p-4">
-                  <div className="flex justify-between items-start">
-                    <h3 className="text-[#0d171b] dark:text-white text-lg font-bold leading-tight">{item.title}</h3>
-                    <span className="bg-primary/10 text-primary text-[10px] font-bold px-2 py-1 rounded-full uppercase">
-                      {(item as any).category?.name || 'UMUM'}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    <p className="text-[#4c809a] dark:text-slate-400 text-sm font-normal leading-relaxed">{item.description}</p>
-                    <p className="text-primary text-base font-bold mt-2">
-                      {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(item.price)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
-                    <button
-                      onClick={(e) => { e.preventDefault(); handleInteraction(() => router.push(`/messages`)); }}
-                      className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
-                    >
-                      <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
-                      <span className="truncate">Chat Penjual</span>
-                    </button>
-                    <button
-                      onClick={(e) => { e.preventDefault(); handleInteraction(() => console.log('Liked!')); }}
-                      className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
-                    >
-                      <span className="material-symbols-outlined">favorite</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </Link>
-          </div>
-        ))}
-
-        {items.length === 0 && (
-          <div className="text-center py-10 text-slate-400">
-            <p>Memuat data...</p>
+              </Link>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-20 text-slate-400">
+            <div className="material-symbols-outlined text-4xl mb-2">inventory_2</div>
+            <p className="text-sm">Konten belum tersedia.</p>
           </div>
         )}
       </main>

@@ -18,6 +18,13 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
             if (!user) return;
             setUserId(user.id);
 
+            // Mark incoming messages as read
+            await supabase
+                .from('messages')
+                .update({ is_read: true })
+                .eq('chat_id', params.id)
+                .neq('sender_id', user.id);
+
             const { data } = await supabase
                 .from('messages')
                 .select('*')

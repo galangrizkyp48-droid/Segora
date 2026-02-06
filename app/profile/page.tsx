@@ -71,14 +71,31 @@ export default function Profile() {
                                         <p className="text-xs text-slate-400">Kelola tawaran & statistik</p>
                                     </div>
                                 </Link>
-                                <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3">
+                                <div
+                                    onClick={() => alert("Fitur 'Disukai' akan segera hadir!")}
+                                    className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
                                     <span className="material-symbols-outlined text-gray-500">favorite</span>
                                     <span>Disukai</span>
                                 </div>
-                                <div className="p-4 flex items-center gap-3">
+                                <div
+                                    onClick={() => alert("Fitur 'Pengaturan' akan segera hadir!")}
+                                    className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
                                     <span className="material-symbols-outlined text-gray-500">settings</span>
                                     <span>Pengaturan</span>
                                 </div>
+                                <Link
+                                    href="https://wa.me/6281315138168?text=Halo%20Tim%20Support%20Segora,%20saya%20ingin%20melaporkan%20masalah%20atau%20memberikan%20saran..."
+                                    target="_blank"
+                                    className="p-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-green-500">support_agent</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">Hubungi Support</p>
+                                        <p className="text-xs text-slate-400">Lapor bug atau saran</p>
+                                    </div>
+                                </Link>
                             </div>
                         </div>
                     </>

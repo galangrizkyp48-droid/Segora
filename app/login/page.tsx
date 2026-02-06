@@ -9,21 +9,37 @@ import { useRouter } from "next/navigation";
 export default function Login() {
     const router = useRouter();
     const [showPassword, setShowPassword] = useState(false);
+    const [isRegister, setIsRegister] = useState(false);
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [fullName, setFullName] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const handleLogin = async () => {
+    const handleAuth = async () => {
         setLoading(true);
         setError(null);
         try {
-            const { error } = await supabase.auth.signInWithPassword({
-                email,
-                password,
-            });
-            if (error) throw error;
-            router.push("/");
+            if (isRegister) {
+                const { error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: {
+                        data: {
+                            full_name: fullName,
+                        }
+                    }
+                });
+                if (error) throw error;
+                alert("Registrasi berhasil! Silakan cek email Anda untuk verifikasi.");
+            } else {
+                const { error } = await supabase.auth.signInWithPassword({
+                    email,
+                    password,
+                });
+                if (error) throw error;
+                router.push("/");
+            }
         } catch (err: any) {
             setError(err.message);
         } finally {
@@ -72,6 +88,23 @@ export default function Login() {
                             {error}
                         </div>
                     )}
+                    {isRegister && (
+                        <div className="flex flex-wrap items-end gap-4">
+                            <label className="flex flex-col min-w-40 flex-1">
+                                <p className="text-[#0d171b] dark:text-white text-base font-medium leading-normal pb-2 ml-1">
+                                    Nama Lengkap
+                                </p>
+                                <input
+                                    className="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-full text-[#0d171b] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#cfdfe7] dark:border-slate-700 bg-white dark:bg-slate-900 h-14 placeholder:text-[#4c809a] px-6 text-base font-normal leading-normal transition-all"
+                                    placeholder="Nama Lengkap"
+                                    type="text"
+                                    value={fullName}
+                                    onChange={(e) => setFullName(e.target.value)}
+                                />
+                            </label>
+                        </div>
+                    )}
+
                     {/* Email Field */}
                     <div className="flex flex-wrap items-end gap-4">
                         <label className="flex flex-col min-w-40 flex-1">
@@ -114,25 +147,27 @@ export default function Login() {
                         </label>
                     </div>
 
-                    {/* Forgot Password */}
-                    <div className="flex justify-end px-1">
-                        <Link
-                            className="text-primary text-sm font-semibold hover:underline"
-                            href="#"
-                        >
-                            Lupa Kata Sandi?
-                        </Link>
-                    </div>
+                    {/* Forgot Password (only in Login) */}
+                    {!isRegister && (
+                        <div className="flex justify-end px-1">
+                            <Link
+                                className="text-primary text-sm font-semibold hover:underline"
+                                href="#"
+                            >
+                                Lupa Kata Sandi?
+                            </Link>
+                        </div>
+                    )}
                 </div>
 
                 {/* Action Buttons */}
                 <div className="mt-8 space-y-4">
                     <button
-                        onClick={handleLogin}
+                        onClick={handleAuth}
                         disabled={loading}
                         className="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-full text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
                     >
-                        {loading ? "Memuat..." : "Masuk"}
+                        {loading ? "Memuat..." : (isRegister ? "Daftar" : "Masuk")}
                     </button>
 
                     <div className="flex items-center gap-4 py-2">
@@ -159,10 +194,13 @@ export default function Login() {
                 {/* Footer Link */}
                 <div className="mt-auto pb-10 pt-8 text-center">
                     <p className="text-[#4c809a] dark:text-slate-400 text-sm">
-                        Belum punya akun?
-                        <Link className="text-primary font-bold hover:underline ml-1" href="#">
-                            Daftar Sekarang
-                        </Link>
+                        {isRegister ? "Sudah punya akun?" : "Belum punya akun?"}
+                        <button
+                            onClick={() => setIsRegister(!isRegister)}
+                            className="text-primary font-bold hover:underline ml-1"
+                        >
+                            {isRegister ? "Masuk Sekarang" : "Daftar Sekarang"}
+                        </button>
                     </p>
                 </div>
             </div>

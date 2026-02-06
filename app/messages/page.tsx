@@ -26,7 +26,27 @@ export default function Messages() {
                 .or(`user_a.eq.${user.id},user_b.eq.${user.id}`)
                 .order('created_at', { ascending: false });
 
-            if (data) setChats(data);
+            if (data) {
+                // Fetch unread counts
+                const { data: unreadData } = await supabase
+                    .from('messages')
+                    .select('chat_id')
+                    .eq('is_read', false)
+                    .neq('sender_id', user.id);
+
+                const unreadCounts = (unreadData || []).reduce((acc: any, msg: any) => {
+                    acc[msg.chat_id] = (acc[msg.chat_id] || 0) + 1;
+                    return acc;
+                }, {});
+
+                // Combine data
+                const chatsWithUnread = data.map(chat => ({
+                    ...chat,
+                    unread_count: unreadCounts[chat.id] || 0
+                }));
+
+                setChats(chatsWithUnread);
+            }
             setLoading(false);
         };
         fetchChats();
@@ -52,9 +72,16 @@ export default function Messages() {
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-1">
                                             <h3 className="font-bold text-sm text-[#0d171b] dark:text-white truncate">{chat.item?.title || 'Percakapan'}</h3>
-                                            <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
-                                                {new Date(chat.created_at).toLocaleDateString()}
-                                            </span>
+                                            <div className="flex flex-col items-end">
+                                                <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium whitespace-nowrap">
+                                                    {new Date(chat.created_at).toLocaleDateString()}
+                                                </span>
+                                                {chat.unread_count > 0 && (
+                                                    <span className="flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold rounded-full mt-1">
+                                                        {chat.unread_count}
+                                                    </span>
+                                                )}
+                                            </div>
                                         </div>
                                         <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Ketuk untuk melihat pesan</p>
                                     </div>

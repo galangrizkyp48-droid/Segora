@@ -27,7 +27,10 @@ export default function ChatDetail({ params }: { params: { id: string } }) {
                     </div>
                 </div>
                 <div className="flex items-center gap-2">
-                    <button className="flex items-center justify-center rounded-full h-10 w-10 bg-transparent text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors">
+                    <button
+                        onClick={() => router.push(`/report/${params.id}`)}
+                        className="flex items-center justify-center rounded-full h-10 w-10 bg-transparent text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                    >
                         <span className="material-symbols-outlined text-[24px]">report</span>
                     </button>
                 </div>

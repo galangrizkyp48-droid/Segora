@@ -118,13 +118,20 @@ export default function Profile() {
     };
 
     const confirmDelete = async () => {
-        if (!itemToDelete || !user) return;
+        console.log('confirmDelete called, itemToDelete:', itemToDelete, 'user:', user?.id);
+        if (!itemToDelete || !user) {
+            console.log('Delete aborted: missing itemToDelete or user');
+            return;
+        }
 
+        console.log('Attempting to delete item from database...');
         const { error } = await supabase
             .from('items')
             .delete()
             .eq('id', itemToDelete)
             .eq('seller_id', user.id);
+
+        console.log('Delete response - error:', error);
 
         if (error) {
             console.error('Delete error:', error);
@@ -134,10 +141,12 @@ export default function Profile() {
             return;
         }
 
+        console.log('Delete successful! Updating local state...');
         // Update local state
         setSellerItems(prev => prev.filter(item => item.id !== itemToDelete));
 
         // Emit event for homepage to sync
+        console.log('Emitting item:deleted event:', itemToDelete);
         eventBus.emit('item:deleted', itemToDelete);
 
         // Recalculate stats
@@ -147,6 +156,7 @@ export default function Profile() {
         }));
 
         // Close modal and show success
+        console.log('Closing modal and showing success');
         setShowDeleteConfirm(false);
         setShowDeleteSuccess(true);
         setItemToDelete(null);

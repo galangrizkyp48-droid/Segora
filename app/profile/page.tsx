@@ -27,6 +27,8 @@ export default function Profile() {
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<string | null>(null);
     const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState<{ type: 'error' | 'success', message: string }>({ type: 'error', message: '' });
 
     useEffect(() => {
         async function getUser() {
@@ -114,7 +116,7 @@ export default function Profile() {
     };
 
     const confirmDelete = async () => {
-        if (!itemToDelete) return;
+        if (!itemToDelete || !user) return;
 
         const { error } = await supabase
             .from('items')
@@ -123,7 +125,10 @@ export default function Profile() {
             .eq('seller_id', user.id);
 
         if (error) {
-            // Show error - could add error dialog here
+            console.error('Delete error:', error);
+            setAlertConfig({ type: 'error', message: 'Gagal menghapus item' });
+            setShowAlert(true);
+            setShowDeleteConfirm(false);
             return;
         }
 
@@ -139,7 +144,8 @@ export default function Profile() {
             activeOffers: Math.max(0, prev.activeOffers - 1)
         }));
 
-        // Show success
+        // Close modal and show success
+        setShowDeleteConfirm(false);
         setShowDeleteSuccess(true);
         setItemToDelete(null);
     };
@@ -381,8 +387,38 @@ export default function Profile() {
                 ) : (
                     <div className="text-center py-20 text-slate-400">Loading profile...</div>
                 )}
+                )}
             </main>
             <BottomNav />
+
+            {/* Delete Confirmation Modal */}
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Hapus Item?"
+                message="Item yang dihapus tidak dapat dikembalikan. Yakin ingin melanjutkan?"
+                confirmText="Hapus"
+                cancelText="Batal"
+                confirmColor="danger"
+                onConfirm={confirmDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
+            />
+
+            {/* Delete Success Alert */}
+            <AlertDialog
+                isOpen={showDeleteSuccess}
+                type="success"
+                message="Item berhasil dihapus!"
+                onClose={() => setShowDeleteSuccess(false)}
+                autoClose={2000}
+            />
+
+            {/* Error Alert */}
+            <AlertDialog
+                isOpen={showAlert}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setShowAlert(false)}
+            />
         </div>
     );
 }

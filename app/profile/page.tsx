@@ -103,6 +103,7 @@ export default function Profile() {
                 .order('created_at', { ascending: false });
 
             if (data) {
+                console.log('Fetched seller items:', data.length, data);
                 setSellerItems(data as any);
             }
             setLoadingItems(false);
@@ -111,6 +112,7 @@ export default function Profile() {
     }, [profile, user, mode]);
 
     const handleDeleteItem = async (itemId: string) => {
+        console.log('Delete clicked for item:', itemId);
         setItemToDelete(itemId);
         setShowDeleteConfirm(true);
     };

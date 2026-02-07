@@ -56,9 +56,9 @@ export default function Home() {
         query = query.eq('campus', campus);
       }
 
-      // 3. Category filter
+      // 3. Category filter (using category name from join)
       if (selectedCategory && selectedCategory !== 'Semua') {
-        query = query.eq('category_id', selectedCategory);
+        query = query.eq('category.name', selectedCategory);
       }
 
       // 4. Price range filter

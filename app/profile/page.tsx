@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Item } from "@/utils/types";
 import { eventBus } from "@/utils/eventBus";
+import ConfirmDialog from "@/components/ConfirmDialog";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function Profile() {
     const router = useRouter();
@@ -20,6 +22,11 @@ export default function Profile() {
     });
     const [sellerItems, setSellerItems] = useState<Item[]>([]);
     const [loadingItems, setLoadingItems] = useState(false);
+
+    // Modal states
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [itemToDelete, setItemToDelete] = useState<string | null>(null);
+    const [showDeleteSuccess, setShowDeleteSuccess] = useState(false);
 
     useEffect(() => {
         async function getUser() {
@@ -102,30 +109,39 @@ export default function Profile() {
     }, [profile, user, mode]);
 
     const handleDeleteItem = async (itemId: string) => {
-        if (!confirm('Yakin ingin menghapus item ini?')) return;
+        setItemToDelete(itemId);
+        setShowDeleteConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        if (!itemToDelete) return;
 
         const { error } = await supabase
             .from('items')
             .delete()
-            .eq('id', itemId)
+            .eq('id', itemToDelete)
             .eq('seller_id', user.id);
 
         if (error) {
-            alert('Gagal menghapus item');
+            // Show error - could add error dialog here
             return;
         }
 
         // Update local state
-        setSellerItems(prev => prev.filter(item => item.id !== itemId));
+        setSellerItems(prev => prev.filter(item => item.id !== itemToDelete));
 
         // Emit event for homepage to sync
-        eventBus.emit('item:deleted', itemId);
+        eventBus.emit('item:deleted', itemToDelete);
 
         // Recalculate stats
         setSellerStats(prev => ({
             ...prev,
             activeOffers: Math.max(0, prev.activeOffers - 1)
         }));
+
+        // Show success
+        setShowDeleteSuccess(true);
+        setItemToDelete(null);
     };
 
     const handleLogout = async () => {

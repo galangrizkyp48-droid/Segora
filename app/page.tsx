@@ -14,6 +14,7 @@ export default function Home() {
   const [items, setItems] = useState<Item[]>([]);
   const [search, setSearch] = useState("");
   const router = useRouter();
+  const [favorites, setFavorites] = useState<string[]>([]); // Store favorite item IDs
 
   // Refresh trigger for when campus is selected
   const [refresh, setRefresh] = useState(false);
@@ -48,12 +49,106 @@ export default function Home() {
     return () => clearTimeout(timeout);
   }, [search, refresh]);
 
+  //Fetch user favorites
+  useEffect(() => {
+    async function fetchFavorites() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data } = await supabase
+        .from('favorites')
+        .select('item_id')
+        .eq('user_id', user.id);
+
+      if (data) {
+        setFavorites(data.map(f => f.item_id));
+      }
+    }
+    fetchFavorites();
+  }, []);
+
   const handleInteraction = async (action: () => void) => {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
       router.push("/login"); // Guard for guests
     } else {
       action();
+    }
+  };
+
+  const handleChatSeller = async (item: Item) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    // Prevent self-message
+    if (item.seller_id === session.user.id) {
+      alert('Anda tidak bisa mengirim pesan ke diri sendiri!');
+      return;
+    }
+
+    // Find existing chat
+    const { data: existingChat } = await supabase
+      .from('chats')
+      .select('id')
+      .or(`and(user_a.eq.${session.user.id},user_b.eq.${item.seller_id}),and(user_a.eq.${item.seller_id},user_b.eq.${session.user.id})`)
+      .eq('item_id', item.id)
+      .single();
+
+    if (existingChat) {
+      router.push(`/messages/${existingChat.id}`);
+      return;
+    }
+
+    // Create new chat
+    const { data: newChat } = await supabase
+      .from('chats')
+      .insert({
+        user_a: session.user.id,
+        user_b: item.seller_id,
+        item_id: item.id
+      })
+      .select('id')
+      .single();
+
+    if (newChat) {
+      router.push(`/messages/${newChat.id}`);
+    }
+  };
+
+  const toggleFavorite = async (itemId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      router.push('/login');
+      return;
+    }
+
+    const isFavorited = favorites.includes(itemId);
+
+    if (isFavorited) {
+      // Remove favorite
+      await supabase
+        .from('favorites')
+        .delete()
+        .eq('user_id', session.user.id)
+        .eq('item_id', itemId);
+
+      setFavorites(prev => prev.filter(id => id !== itemId));
+    } else {
+      // Add favorite
+      await supabase
+        .from('favorites')
+        .insert({
+          user_id: session.user.id,
+          item_id: itemId
+        });
+
+      setFavorites(prev => [...prev, itemId]);
     }
   };
 
@@ -182,17 +277,20 @@ export default function Home() {
                     </div>
                     <div className="flex items-center gap-3 mt-3 pt-3 border-t border-slate-50 dark:border-slate-800">
                       <button
-                        onClick={(e) => { e.preventDefault(); handleInteraction(() => router.push(`/messages`)); }}
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleChatSeller(item); }}
                         className="flex-1 flex cursor-pointer items-center justify-center rounded-full h-10 px-4 bg-primary text-white text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-colors"
                       >
                         <span className="material-symbols-outlined mr-2 text-[20px]">chat</span>
                         <span className="truncate">Chat Penjual</span>
                       </button>
                       <button
-                        onClick={(e) => { e.preventDefault(); handleInteraction(() => console.log('Liked!')); }}
-                        className="flex size-10 items-center justify-center rounded-full bg-slate-50 dark:bg-slate-800 text-[#4c809a] hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                        onClick={(e) => toggleFavorite(item.id, e)}
+                        className={`flex size-10 items-center justify-center rounded-full ${favorites.includes(item.id)
+                            ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
+                            : 'bg-slate-50 dark:bg-slate-800 text-[#4c809a]'
+                          } hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors`}
                       >
-                        <span className="material-symbols-outlined">favorite</span>
+                        <span className="material-symbols-outlined" style={{ fontVariationSettings: favorites.includes(item.id) ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
                       </button>
                     </div>
                   </div>

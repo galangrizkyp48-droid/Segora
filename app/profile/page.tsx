@@ -5,6 +5,7 @@ import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { Item } from "@/utils/types";
 
 export default function Profile() {
     const router = useRouter();
@@ -16,6 +17,8 @@ export default function Profile() {
         totalViews: 0,
         avgRating: 5.0
     });
+    const [sellerItems, setSellerItems] = useState<Item[]>([]);
+    const [loadingItems, setLoadingItems] = useState(false);
 
     useEffect(() => {
         async function getUser() {
@@ -76,6 +79,50 @@ export default function Profile() {
         }
         fetchSellerStats();
     }, [profile, user]);
+
+    // Fetch seller items
+    useEffect(() => {
+        async function fetchSellerItems() {
+            if (!profile?.is_seller || !user || mode !== 'seller') return;
+
+            setLoadingItems(true);
+            const { data } = await supabase
+                .from('items')
+                .select('*, category:categories(name)')
+                .eq('seller_id', user.id)
+                .order('created_at', { ascending: false });
+
+            if (data) {
+                setSellerItems(data as any);
+            }
+            setLoadingItems(false);
+        }
+        fetchSellerItems();
+    }, [profile, user, mode]);
+
+    const handleDeleteItem = async (itemId: string) => {
+        if (!confirm('Yakin ingin menghapus item ini?')) return;
+
+        const { error } = await supabase
+            .from('items')
+            .delete()
+            .eq('id', itemId)
+            .eq('seller_id', user.id);
+
+        if (error) {
+            alert('Gagal menghapus item');
+            return;
+        }
+
+        // Update local state
+        setSellerItems(prev => prev.filter(item => item.id !== itemId));
+
+        // Recalculate stats
+        setSellerStats(prev => ({
+            ...prev,
+            activeOffers: Math.max(0, prev.activeOffers - 1)
+        }));
+    };
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -198,50 +245,115 @@ export default function Profile() {
                         {/* Seller Mode Content */}
                         {mode === 'seller' && profile.is_seller && (
                             <div className="space-y-4">
-                                {/* Quick Stats */}
-                                <div className="grid grid-cols-3 gap-3">
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">{sellerStats.activeOffers}</p>
-                                        <p className="text-xs text-slate-500 mt-1">Tawaran Aktif</p>
+                                {/* Seller Profile Card */}
+                                <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-100 dark:border-slate-700">
+                                    <div className="flex items-center gap-3 mb-4">
+                                        <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+                                            <span className="text-2xl font-bold text-primary">
+                                                {profile.shop_name?.[0]?.toUpperCase() || 'T'}
+                                            </span>
+                                        </div>
+                                        <div className="flex-1">
+                                            <h2 className="font-bold text-lg text-[#0d171b] dark:text-white">{profile.shop_name || 'Toko Saya'}</h2>
+                                            <p className="text-sm text-slate-400">{profile.full_name || user?.email?.split('@')[0]}</p>
+                                        </div>
+                                        <Link href="/setup-shop">
+                                            <button className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                                                <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">edit</span>
+                                            </button>
+                                        </Link>
                                     </div>
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">{sellerStats.totalViews}</p>
-                                        <p className="text-xs text-slate-500 mt-1">Total Views</p>
-                                    </div>
-                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">{sellerStats.avgRating}</p>
-                                        <p className="text-xs text-slate-500 mt-1">Rating</p>
+
+                                    {/* Stats Grid */}
+                                    <div className="grid grid-cols-3 gap-3">
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
+                                            <p className="text-2xl font-bold text-primary">{sellerStats.activeOffers}</p>
+                                            <p className="text-xs text-slate-500 mt-1">Tawaran Aktif</p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
+                                            <p className="text-2xl font-bold text-primary">{sellerStats.totalViews}</p>
+                                            <p className="text-xs text-slate-500 mt-1">Total Views</p>
+                                        </div>
+                                        <div className="bg-slate-50 dark:bg-slate-800 p-3 rounded-xl text-center border border-slate-100 dark:border-slate-700">
+                                            <p className="text-2xl font-bold text-primary">{sellerStats.avgRating}</p>
+                                            <p className="text-xs text-slate-500 mt-1">Rating</p>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* Seller Actions */}
-                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                                    <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                        <span className="material-symbols-outlined text-primary">dashboard</span>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-sm">Dashboard Lengkap</p>
-                                            <p className="text-xs text-slate-400">Kelola semua tawaran</p>
+                                {/* Quick Actions */}
+                                <div className="grid grid-cols-2 gap-3">
+                                    <Link href="/create-offer">
+                                        <div className="bg-primary text-white p-4 rounded-xl flex items-center gap-3 cursor-pointer hover:bg-primary/90 transition-colors shadow-sm">
+                                            <span className="material-symbols-outlined">add_circle</span>
+                                            <span className="font-bold text-sm">Buat Tawaran</span>
                                         </div>
-                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
                                     </Link>
-                                    <Link href="/create-offer" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                        <span className="material-symbols-outlined text-green-500">add_circle</span>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-sm">Buat Tawaran Baru</p>
-                                            <p className="text-xs text-slate-400">Jual produk atau jasa</p>
+
+                                    <div className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-700 p-4 rounded-xl flex items-center gap-3">
+                                        <span className="material-symbols-outlined text-primary">inventory</span>
+                                        <div>
+                                            <p className="font-bold text-sm text-[#0d171b] dark:text-white">Produk</p>
+                                            <p className="text-xs text-slate-400">{sellerItems.length} item</p>
                                         </div>
-                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
-                                    </Link>
-                                    <div
-                                        className="p-4 flex items-center gap-3 opacity-60 cursor-not-allowed relative group"
-                                    >
-                                        <span className="material-symbols-outlined text-blue-500">bar_chart</span>
-                                        <div className="flex-1">
-                                            <p className="font-semibold text-sm">Statistik Penjualan</p>
-                                            <p className="text-xs text-slate-400">Lihat performa toko</p>
-                                        </div>
-                                        <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full">Segera</span>
                                     </div>
+                                </div>
+
+                                {/* Items Grid */}
+                                <div>
+                                    <h3 className="font-bold text-lg mb-3 text-[#0d171b] dark:text-white">Produk Saya</h3>
+                                    {loadingItems ? (
+                                        <div className="text-center py-10">
+                                            <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+                                        </div>
+                                    ) : sellerItems.length > 0 ? (
+                                        <div className="grid grid-cols-2 gap-3">
+                                            {sellerItems.map(item => (
+                                                <div key={item.id} className="bg-white dark:bg-slate-900 rounded-xl overflow-hidden border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md transition-shadow">
+                                                    <Link href={`/offer/${item.id}`}>
+                                                        <div
+                                                            className="aspect-square bg-cover bg-center cursor-pointer"
+                                                            style={{ backgroundImage: `url("${item.image_url}")` }}
+                                                        />
+                                                    </Link>
+                                                    <div className="p-3">
+                                                        <h4 className="font-bold text-sm truncate text-[#0d171b] dark:text-white mb-1">{item.title}</h4>
+                                                        <p className="text-primary font-bold text-sm mb-2">
+                                                            {new Intl.NumberFormat('id-ID', {
+                                                                style: 'currency',
+                                                                currency: 'IDR',
+                                                                maximumFractionDigits: 0
+                                                            }).format(item.price)}
+                                                        </p>
+                                                        <div className="flex gap-2">
+                                                            <Link href={`/edit-offer/${item.id}`} className="flex-1">
+                                                                <button className="w-full text-xs py-2 bg-slate-100 dark:bg-slate-800 text-[#0d171b] dark:text-white rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-medium">
+                                                                    Edit
+                                                                </button>
+                                                            </Link>
+                                                            <button
+                                                                onClick={() => handleDeleteItem(item.id)}
+                                                                className="flex-1 text-xs py-2 bg-red-50 dark:bg-red-900/20 text-red-500 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors font-medium"
+                                                            >
+                                                                Hapus
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="text-center py-10 text-slate-400">
+                                            <span className="material-symbols-outlined text-6xl block mb-2">inventory_2</span>
+                                            <p className="text-sm font-semibold mb-1">Belum ada produk</p>
+                                            <p className="text-xs mb-4">Mulai jual produk atau jasa kamu</p>
+                                            <Link href="/create-offer">
+                                                <button className="px-6 py-2 bg-primary text-white rounded-lg font-bold text-sm hover:bg-primary/90 transition-colors">
+                                                    Buat Tawaran Pertama
+                                                </button>
+                                            </Link>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         )}

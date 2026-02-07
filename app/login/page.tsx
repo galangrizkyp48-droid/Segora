@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function Login() {
     const router = useRouter();
@@ -16,6 +17,7 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [successMsg, setSuccessMsg] = useState<string | null>(null);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
 
     const handleAuth = async () => {
         setLoading(true);
@@ -50,6 +52,11 @@ export default function Login() {
         } finally {
             setLoading(false);
         }
+    };
+
+    const handleEmailLogin = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setAlertDialog({ show: true, title: 'Segera Hadir', message: 'Login email akan segera tersedia. Silakan gunakan login Google.' });
     };
 
     const handleGoogleLogin = async () => {

@@ -5,10 +5,11 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { campuses } from "@/data/campuses";
 import CampusPopup from "@/components/CampusPopup";
-import { Item } from "@/utils/types";
+import { Item, Category } from "@/utils/types";
 import BottomNav from "@/components/BottomNav";
 import FilterModal from "@/components/FilterModal";
 import { eventBus } from "@/utils/eventBus";
+import AlertDialog from "@/components/AlertDialog";
 
 import { useRouter } from "next/navigation";
 
@@ -22,7 +23,11 @@ export default function Home() {
   const [refresh, setRefresh] = useState(false);
 
   // Category filter
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>("Semua");
+  const [priceRange, setPriceRange] = useState<{ min: number; max: number }>({ min: 0, max: 10000000 });
+  const [sortOption, setSortOption] = useState<string>("relevance");
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
 
   // Filter modal
   const [showFilterModal, setShowFilterModal] = useState(false);

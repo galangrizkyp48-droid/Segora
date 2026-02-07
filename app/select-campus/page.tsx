@@ -1,23 +1,36 @@
+```
 "use client";
 
 import { useState } from "react";
 import { campuses } from "@/data/campuses";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import AlertDialog from "@/components/AlertDialog";
 
-export default function SelectCampusPage() {
+export default function SelectCampus() {
     const router = useRouter();
-    const [search, setSearch] = useState("");
-    const [selectedCampus, setSelectedCampus] = useState<typeof campuses[0] | null>(null);
+    const [searchTerm, setSearchTerm] = useState("");
+    const [selectedCampusId, setSelectedCampusId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
 
     const filteredCampuses = campuses.filter(c =>
-        c.name.toLowerCase().includes(search.toLowerCase())
+        c.name.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     const handleConfirm = async () => {
-        if (!selectedCampus) return;
+        if (!selectedCampusId) {
+            setAlertDialog({ show: true, title: 'Pilih Kampus', message: 'Silakan pilih kampus Anda terlebih dahulu' });
+            return;
+        }
         setLoading(true);
+
+        const selectedCampus = campuses.find(c => c.id === selectedCampusId);
+        if (!selectedCampus) {
+            setAlertDialog({ show: true, title: 'Error', message: 'Kampus yang dipilih tidak ditemukan.' });
+            setLoading(false);
+            return;
+        }
 
         const { data: { user } } = await supabase.auth.getUser();
 
@@ -27,7 +40,7 @@ export default function SelectCampusPage() {
             });
 
             if (error) {
-                alert("Gagal menyimpan kampus: " + error.message);
+                setAlertDialog({ show: true, title: 'Gagal Menyimpan', message: "Gagal menyimpan kampus: " + error.message });
             } else {
                 router.replace("/");
             }
@@ -64,7 +77,7 @@ export default function SelectCampusPage() {
                     <div
                         key={campus.id}
                         onClick={() => setSelectedCampus(campus)}
-                        className={`p-4 rounded-xl border cursor-pointer transition-all flex items-center justify-between ${selectedCampus?.id === campus.id ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900'}`}
+                        className={`p - 4 rounded - xl border cursor - pointer transition - all flex items - center justify - between ${ selectedCampus?.id === campus.id ? 'border-primary bg-primary/5' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900' } `}
                     >
                         <div>
                             <p className="font-bold text-[#0d171b] dark:text-white text-sm">{campus.name}</p>
@@ -94,6 +107,13 @@ export default function SelectCampusPage() {
                     {loading ? "Menyimpan..." : "Lanjut ke Beranda"}
                 </button>
             </div>
+
+            <AlertDialog
+                show={alertDialog.show}
+                title={alertDialog.title}
+                message={alertDialog.message}
+                onClose={() => setAlertDialog({ show: false, title: '', message: '' })}
+            />
         </div>
     );
 }

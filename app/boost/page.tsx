@@ -5,12 +5,14 @@ import { supabase } from "@/utils/supabase/client";
 import { Item } from "@/utils/types";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function BoostPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const preSelectedId = searchParams.get('id');
 
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
     const [items, setItems] = useState<Item[]>([]);
     const [selectedItemId, setSelectedItemId] = useState<string | null>(preSelectedId);
     const [duration, setDuration] = useState<1 | 3 | 7>(1);
@@ -207,13 +209,63 @@ export default function BoostPage() {
                                     onClick={() => alert("🎁 Fitur kode promo akan segera hadir! Ikuti media sosial kami untuk mendapatkan kode promo eksklusif.")}
                                     className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform"
                                 >
-                                    Cek Paket
+                                    onClick={handlePayment}
+                                    disabled={!selectedItemId}
+                                    className="flex-1 bg-primary text-white font-bold py-4 rounded-full shadow-lg shadow-primary/20 active:scale-95 transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    Bayar & Sundul Sekarang
                                 </button>
                             </div>
                         </div>
+                    )}
+
+                        {/* Segora Plus Section */}
+                        {tab === 'plus' && (
+                            <div className="px-4 pt-8 animate-fade-in">
+                                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary to-blue-600 text-white shadow-lg relative overflow-hidden">
+                                    <div className="absolute -right-4 -top-4 opacity-20">
+                                        <span className="material-symbols-outlined text-[120px]">workspace_premium</span>
+                                    </div>
+                                    <h3 className="text-xl font-bold mb-1">Berlangganan Segora Plus</h3>
+                                    <p className="text-white/80 text-sm mb-6">Nikmati fitur eksklusif untuk tingkatkan kredibilitasmu.</p>
+                                    <ul className="space-y-3 mb-6">
+                                        <li className="flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-white size-5 flex items-center justify-center bg-white/20 rounded-full text-[16px]">verified</span>
+                                            <span className="text-sm font-medium">Lencana Verifikasi Akun</span>
+                                        </li>
+                                        <li className="flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-white size-5 flex items-center justify-center bg-white/20 rounded-full text-[16px]">trending_up</span>
+                                            <span className="text-sm font-medium">Prioritas di Hasil Pencarian</span>
+                                        </li>
+                                        <li className="flex items-center gap-3">
+                                            <span className="material-symbols-outlined text-white size-5 flex items-center justify-center bg-white/20 rounded-full text-[16px]">add_circle</span>
+                                            <span className="text-sm font-medium">Batas Postingan Lebih Banyak</span>
+                                        </li>
+                                    </ul>
+                                    <div className="bg-white/10 backdrop-blur-sm rounded-xl p-4 flex justify-between items-center border border-white/20">
+                                        <div>
+                                            <p className="text-xs text-white/70">Mulai dari</p>
+                                            <p className="text-lg font-bold">Rp 49.000<span className="text-xs font-normal">/bulan</span></p>
+                                        </div>
+                                        <button
+                                            onClick={() => alert("🎁 Fitur kode promo akan segera hadir! Ikuti media sosial kami untuk mendapatkan kode promo eksklusif.")}
+                                            className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform"
+                                        >
+                                            Cek Paket
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </div>
-                )}
-            </div>
-        </div>
+            </main>
+
+            <AlertDialog
+                show={alertDialog.show}
+                title={alertDialog.title}
+                message={alertDialog.message}
+                onClose={() => setAlertDialog({ show: false, title: '', message: '' })}
+            />
+        </>
     );
 }

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Item } from "@/utils/types";
+import { eventBus } from "@/utils/eventBus";
 
 export default function Profile() {
     const router = useRouter();
@@ -116,6 +117,9 @@ export default function Profile() {
 
         // Update local state
         setSellerItems(prev => prev.filter(item => item.id !== itemId));
+
+        // Emit event for homepage to sync
+        eventBus.emit('item:deleted', itemId);
 
         // Recalculate stats
         setSellerStats(prev => ({

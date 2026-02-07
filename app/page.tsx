@@ -7,6 +7,8 @@ import { campuses } from "@/data/campuses";
 import CampusPopup from "@/components/CampusPopup";
 import { Item } from "@/utils/types";
 import BottomNav from "@/components/BottomNav";
+import FilterModal from "@/components/FilterModal";
+import { eventBus } from "@/utils/eventBus";
 
 import { useRouter } from "next/navigation";
 
@@ -19,27 +21,61 @@ export default function Home() {
   // Refresh trigger for when campus is selected
   const [refresh, setRefresh] = useState(false);
 
+  // Category filter
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+
+  // Filter modal
+  const [showFilterModal, setShowFilterModal] = useState(false);
+  const [filters, setFilters] = useState({
+    minPrice: '',
+    maxPrice: '',
+    minRating: 0,
+    location: '',
+    sortBy: ''
+  });
+
   useEffect(() => {
     async function fetchItems() {
       let query = supabase
         .from('items')
-        .select(`*, category:categories(name)`)
-        .order('created_at', { ascending: false });
+        .select(`*, category:categories(name)`);
 
       const { data: { user } } = await supabase.auth.getUser();
 
+      // 1. Search filter
       if (search) {
         query = query.ilike('title', `%${search}%`);
       }
 
-      // Add campus filtering based on user's campus OR local storage
+      // 2. Campus filtering
       let campus = user?.user_metadata?.campus;
       if (!campus) {
         campus = localStorage.getItem("selectedCampus");
       }
-
       if (campus) {
         query = query.eq('campus', campus);
+      }
+
+      // 3. Category filter
+      if (selectedCategory && selectedCategory !== 'Semua') {
+        query = query.eq('category_id', selectedCategory);
+      }
+
+      // 4. Price range filter
+      if (filters.minPrice) {
+        query = query.gte('price', parseInt(filters.minPrice));
+      }
+      if (filters.maxPrice) {
+        query = query.lte('price', parseInt(filters.maxPrice));
+      }
+
+      // 5. Sort by
+      if (filters.sortBy === 'price_asc') {
+        query = query.order('price', { ascending: true });
+      } else if (filters.sortBy === 'price_desc') {
+        query = query.order('price', { ascending: false });
+      } else {
+        query = query.order('created_at', { ascending: false });
       }
 
       const { data } = await query;
@@ -47,7 +83,7 @@ export default function Home() {
     }
     const timeout = setTimeout(fetchItems, 500);
     return () => clearTimeout(timeout);
-  }, [search, refresh]);
+  }, [search, refresh, selectedCategory, filters]);
 
   //Fetch user favorites
   useEffect(() => {
@@ -65,6 +101,16 @@ export default function Home() {
       }
     }
     fetchFavorites();
+  }, []);
+
+  // Listen for item deletion events
+  useEffect(() => {
+    const handleItemDeleted = (itemId: string) => {
+      setItems(prev => prev.filter(item => item.id !== itemId));
+    };
+
+    eventBus.on('item:deleted', handleItemDeleted);
+    return () => eventBus.off('item:deleted', handleItemDeleted);
   }, []);
 
   const handleInteraction = async (action: () => void) => {
@@ -152,6 +198,18 @@ export default function Home() {
     }
   };
 
+  // Category filter handler
+  const handleCategoryClick = (category: string) => {
+    setSelectedCategory(category === 'Semua' ? null : category);
+  };
+
+  // Count active filters
+  const activeFilterCount = [
+    filters.minPrice,
+    filters.maxPrice,
+    filters.sortBy
+  ].filter(Boolean).length;
+
   return (
     <>
       <CampusPopup onSelect={() => setRefresh(prev => !prev)} />
@@ -194,30 +252,68 @@ export default function Home() {
               />
             </div>
           </label>
-          <button className="flex size-11 items-center justify-center rounded-full bg-primary text-white shadow-md shadow-primary/20">
+          <button
+            onClick={() => setShowFilterModal(true)}
+            className="flex size-11 items-center justify-center rounded-full bg-primary text-white shadow-md shadow-primary/20 relative"
+          >
             <span className="material-symbols-outlined">tune</span>
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {activeFilterCount}
+              </span>
+            )}
           </button>
         </div>
         {/* Chips / Categories */}
         <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
-          <button className="flex h-9 shrink-0 items-center justify-center gap-x-1 rounded-full bg-primary px-4">
-            <p className="text-white text-xs font-semibold">Semua</p>
+          <button
+            onClick={() => handleCategoryClick('Semua')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-1 rounded-full px-4 transition-colors ${selectedCategory === null
+              ? 'bg-primary text-white'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <p className={`text-xs font-semibold ${selectedCategory === null ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Semua</p>
           </button>
-          <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 px-4 border border-slate-100 dark:border-slate-700">
-            <span className="material-symbols-outlined text-[18px]">print</span>
-            <p className="text-[#0d171b] dark:text-white text-xs font-medium">Jasa</p>
+          <button
+            onClick={() => handleCategoryClick('1')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '1'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '1' ? 'text-white' : ''}`}>print</span>
+            <p className={`text-xs font-medium ${selectedCategory === '1' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Jasa</p>
           </button>
-          <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 px-4 border border-slate-100 dark:border-slate-700">
-            <span className="material-symbols-outlined text-[18px]">book</span>
-            <p className="text-[#0d171b] dark:text-white text-xs font-medium">Buku</p>
+          <button
+            onClick={() => handleCategoryClick('2')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '2'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '2' ? 'text-white' : ''}`}>book</span>
+            <p className={`text-xs font-medium ${selectedCategory === '2' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Buku</p>
           </button>
-          <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 px-4 border border-slate-100 dark:border-slate-700">
-            <span className="material-symbols-outlined text-[18px]">restaurant</span>
-            <p className="text-[#0d171b] dark:text-white text-xs font-medium">Makanan</p>
+          <button
+            onClick={() => handleCategoryClick('3')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '3'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '3' ? 'text-white' : ''}`}>restaurant</span>
+            <p className={`text-xs font-medium ${selectedCategory === '3' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Makanan</p>
           </button>
-          <button className="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-slate-800 px-4 border border-slate-100 dark:border-slate-700">
-            <span className="material-symbols-outlined text-[18px]">devices</span>
-            <p className="text-[#0d171b] dark:text-white text-xs font-medium">Elektronik</p>
+          <button
+            onClick={() => handleCategoryClick('4')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '4'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '4' ? 'text-white' : ''}`}>devices</span>
+            <p className={`text-xs font-medium ${selectedCategory === '4' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Elektronik</p>
           </button>
         </div>
       </header>
@@ -286,8 +382,8 @@ export default function Home() {
                       <button
                         onClick={(e) => toggleFavorite(item.id, e)}
                         className={`flex size-10 items-center justify-center rounded-full ${favorites.includes(item.id)
-                            ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
-                            : 'bg-slate-50 dark:bg-slate-800 text-[#4c809a]'
+                          ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
+                          : 'bg-slate-50 dark:bg-slate-800 text-[#4c809a]'
                           } hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors`}
                       >
                         <span className="material-symbols-outlined" style={{ fontVariationSettings: favorites.includes(item.id) ? "'FILL' 1" : "'FILL' 0" }}>favorite</span>
@@ -308,6 +404,12 @@ export default function Home() {
       {/* Bottom Navigation Bar (iOS Style) */}
       <BottomNav />
 
+      <FilterModal
+        showModal={showFilterModal}
+        setShowModal={setShowFilterModal}
+        filters={filters}
+        setFilters={setFilters}
+      />
     </>
   );
 }

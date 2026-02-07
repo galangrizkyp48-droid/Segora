@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function CreateOffer() {
     const router = useRouter();
@@ -19,6 +20,10 @@ export default function CreateOffer() {
 
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+    // Modal states
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState({ type: 'error' as const, message: '' });
 
     // Dynamic Categories
     const categoryOptions: Record<string, string[]> = {
@@ -42,7 +47,9 @@ export default function CreateOffer() {
 
     const handleSubmit = async () => {
         if (!formData.title || !formData.price || !formData.description) {
-            return alert("Mohon lengkapi semua data!");
+            setAlertConfig({ type: 'error', message: 'Mohon lengkapi semua data!' });
+            setShowAlert(true);
+            return;
         }
 
         setLoading(true);
@@ -69,7 +76,8 @@ export default function CreateOffer() {
 
             if (uploadError) {
                 console.error("Upload error:", uploadError);
-                alert("Gagal upload foto: " + uploadError.message);
+                setAlertConfig({ type: 'error', message: `Gagal upload foto: ${uploadError.message}` });
+                setShowAlert(true);
                 setLoading(false);
                 return;
             }
@@ -103,7 +111,8 @@ export default function CreateOffer() {
         const categoryId = categoryData?.id;
 
         if (!categoryId) {
-            alert("Kategori tidak valid atau belum tersedia di database.");
+            setAlertConfig({ type: 'error', message: 'Kategori tidak valid atau belum tersedia di database.' });
+            setShowAlert(true);
             setLoading(false);
             return;
         }
@@ -126,7 +135,8 @@ export default function CreateOffer() {
         if (!error) {
             router.push("/"); // Redirect to Homepage after creation
         } else {
-            alert("Gagal: " + error.message);
+            setAlertConfig({ type: 'error', message: `Gagal: ${error.message}` });
+            setShowAlert(true);
         }
         setLoading(false);
     };
@@ -340,6 +350,14 @@ export default function CreateOffer() {
                     </button>
                 </footer>
             </div>
+
+            {/* Alert Dialog */}
+            <AlertDialog
+                isOpen={showAlert}
+                type={alertConfig.type}
+                message={alertConfig.message}
+                onClose={() => setShowAlert(false)}
+            />
         </>
     );
 }

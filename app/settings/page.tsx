@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
 import BottomNav from "@/components/BottomNav";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function Settings() {
     const router = useRouter();
@@ -16,6 +17,10 @@ export default function Settings() {
         major: "",
         bio: ""
     });
+
+    // Modal states
+    const [showAlert, setShowAlert] = useState(false);
+    const [alertConfig, setAlertConfig] = useState<{ type: 'success' | 'error', message: string }>({ type: 'success', message: '' });
 
     useEffect(() => {
         async function loadProfile() {
@@ -60,11 +65,13 @@ export default function Settings() {
         setSaving(false);
 
         if (error) {
-            alert('Gagal menyimpan perubahan.');
+            setAlertConfig({ type: 'error', message: 'Gagal menyimpan perubahan.' });
+            setShowAlert(true);
             console.error(error);
         } else {
-            alert('Profil berhasil diperbaharui!');
-            router.push('/profile');
+            setAlertConfig({ type: 'success', message: 'Profil berhasil diperbaharui!' });
+            setShowAlert(true);
+            setTimeout(() => router.push('/profile'), 2000);
         }
     };
 

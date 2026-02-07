@@ -89,6 +89,14 @@ export default function Home() {
 
       const { data } = await query;
       if (data) {
+        // Debug: Check for items without IDs
+        console.log('Fetched items count:', data.length);
+        const itemsWithoutId = data.filter((item: any) => !item.id);
+        if (itemsWithoutId.length > 0) {
+          console.error('Items without ID:', itemsWithoutId);
+        }
+        console.log('Sample item:', data[0]);
+
         // Client-side category filter
         if (selectedCategory && selectedCategory !== 'Semua') {
           const filtered = data.filter((item: any) => item.category?.name === selectedCategory);

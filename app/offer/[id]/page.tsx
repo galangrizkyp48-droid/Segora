@@ -5,10 +5,12 @@ import { supabase } from "@/utils/supabase/client";
 import { Item } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function OfferDetail({ params }: { params: Promise<{ id: string }> }) {
     const [item, setItem] = useState<Item | null>(null);
     const [loading, setLoading] = useState(true);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
     const router = useRouter();
 
     // Unwrap params Promise for Next.js 13+ App Router
@@ -78,7 +80,7 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
 
         // Check if user is trying to message themselves
         if (item.seller_id === session.user.id) {
-            alert('Anda tidak bisa mengirim pesan ke diri sendiri!');
+            setAlertDialog({ show: true, title: 'Tidak Dapat Mengirim Pesan', message: 'Anda tidak bisa mengirim pesan ke diri sendiri!' });
             return;
         }
 
@@ -109,7 +111,7 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
 
             if (error) {
                 console.error('Error creating chat:', error);
-                alert('Gagal membuat chat. Silakan coba lagi.');
+                setAlertDialog({ show: true, title: 'Gagal Membuat Chat', message: 'Gagal membuat chat. Silakan coba lagi.' });
                 return;
             }
 
@@ -134,7 +136,7 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
             } else {
                 // Fallback: copy link to clipboard
                 await navigator.clipboard.writeText(window.location.href);
-                alert('Link berhasil disalin!');
+                setAlertDialog({ show: true, title: 'Berhasil', message: 'Link berhasil disalin ke clipboard!' });
             }
         } catch (error) {
             console.error('Error sharing:', error);
@@ -255,6 +257,13 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
                     <span>Hubungi Penjual</span>
                 </button>
             </div>
+
+            <AlertDialog
+                show={alertDialog.show}
+                title={alertDialog.title}
+                message={alertDialog.message}
+                onClose={() => setAlertDialog({ show: false, title: '', message: '' })}
+            />
         </div>
     );
 }

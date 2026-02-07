@@ -192,6 +192,7 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                                 <input
                                     type="file"
                                     accept="image/*"
+                                    capture="environment"
                                     onChange={handleImageUpload}
                                     className="hidden"
                                     disabled={uploading}

@@ -21,6 +21,12 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
 
             if (data) {
                 setItem(data);
+
+                // Increment views count
+                await supabase
+                    .from('items')
+                    .update({ views: (data.views || 0) + 1 })
+                    .eq('id', params.id);
             }
             setLoading(false);
         }

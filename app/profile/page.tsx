@@ -11,6 +11,11 @@ export default function Profile() {
     const [user, setUser] = useState<any>(null);
     const [profile, setProfile] = useState<any>(null);
     const [mode, setMode] = useState<'buyer' | 'seller'>('buyer');
+    const [sellerStats, setSellerStats] = useState({
+        activeOffers: 0,
+        totalViews: 0,
+        avgRating: 5.0
+    });
 
     useEffect(() => {
         async function getUser() {
@@ -32,6 +37,45 @@ export default function Profile() {
         }
         getUser();
     }, [router]);
+
+    // Fetch seller statistics
+    useEffect(() => {
+        async function fetchSellerStats() {
+            if (!profile?.is_seller || !user) return;
+
+            // Count active offers
+            const { count } = await supabase
+                .from('items')
+                .select('*', { count: 'exact', head: true })
+                .eq('seller_id', user.id);
+
+            // Sum total views
+            const { data: items } = await supabase
+                .from('items')
+                .select('views')
+                .eq('seller_id', user.id);
+
+            const totalViews = items?.reduce((sum, item) => sum + (item.views || 0), 0) || 0;
+
+            // Calculate average rating from reports
+            const { data: ratings } = await supabase
+                .from('reports')
+                .select('rating')
+                .eq('reported_user_id', user.id)
+                .not('rating', 'is', null);
+
+            const avgRating = ratings && ratings.length > 0
+                ? ratings.reduce((sum, r) => sum + (r.rating || 0), 0) / ratings.length
+                : 5.0;
+
+            setSellerStats({
+                activeOffers: count || 0,
+                totalViews,
+                avgRating: Math.round(avgRating * 10) / 10
+            });
+        }
+        fetchSellerStats();
+    }, [profile, user]);
 
     const handleLogout = async () => {
         await supabase.auth.signOut();
@@ -83,8 +127,8 @@ export default function Profile() {
                                 <button
                                     onClick={() => setMode('buyer')}
                                     className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all ${mode === 'buyer'
-                                            ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
-                                            : 'text-slate-500'
+                                        ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                        : 'text-slate-500'
                                         }`}
                                 >
                                     Pembeli
@@ -92,8 +136,8 @@ export default function Profile() {
                                 <button
                                     onClick={() => setMode('seller')}
                                     className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all ${mode === 'seller'
-                                            ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
-                                            : 'text-slate-500'
+                                        ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                        : 'text-slate-500'
                                         }`}
                                 >
                                     Penjual
@@ -104,8 +148,8 @@ export default function Profile() {
                         {/* Buyer Mode Content */}
                         {mode === 'buyer' && (
                             <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
-                                <div
-                                    onClick={() => alert("Fitur 'Riwayat Pembelian' akan segera hadir!")}
+                                <Link
+                                    href="/purchases"
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-gray-500">shopping_bag</span>
@@ -113,9 +157,10 @@ export default function Profile() {
                                         <p className="font-semibold text-sm">Riwayat Pembelian</p>
                                         <p className="text-xs text-slate-400">Lihat pesanan kamu</p>
                                     </div>
-                                </div>
-                                <div
-                                    onClick={() => alert("Fitur 'Disukai' akan segera hadir!")}
+                                    <span className="material-symbols-outlined text-slate-400 ml-auto">chevron_right</span>
+                                </Link>
+                                <Link
+                                    href="/favorites"
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-gray-500">favorite</span>
@@ -123,7 +168,8 @@ export default function Profile() {
                                         <p className="font-semibold text-sm">Disukai</p>
                                         <p className="text-xs text-slate-400">Item favorit kamu</p>
                                     </div>
-                                </div>
+                                    <span className="material-symbols-outlined text-slate-400 ml-auto">chevron_right</span>
+                                </Link>
                                 <div
                                     onClick={() => alert("Fitur 'Pengaturan' akan segera hadir!")}
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
@@ -154,15 +200,15 @@ export default function Profile() {
                                 {/* Quick Stats */}
                                 <div className="grid grid-cols-3 gap-3">
                                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">0</p>
+                                        <p className="text-2xl font-bold text-primary">{sellerStats.activeOffers}</p>
                                         <p className="text-xs text-slate-500 mt-1">Tawaran Aktif</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">0</p>
+                                        <p className="text-2xl font-bold text-primary">{sellerStats.totalViews}</p>
                                         <p className="text-xs text-slate-500 mt-1">Total Views</p>
                                     </div>
                                     <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
-                                        <p className="text-2xl font-bold text-primary">5.0</p>
+                                        <p className="text-2xl font-bold text-primary">{sellerStats.avgRating}</p>
                                         <p className="text-xs text-slate-500 mt-1">Rating</p>
                                     </div>
                                 </div>

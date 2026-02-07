@@ -14,15 +14,34 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
     useEffect(() => {
         async function fetchItem() {
             console.log('Fetching item with ID:', params.id);
+
+            // First try: fetch without category join to avoid 400 error
             const { data, error } = await supabase
                 .from('items')
-                .select(`*, category:categories(name)`)
+                .select('*')
                 .eq('id', params.id)
                 .single();
 
             console.log('Fetch result - data:', data, 'error:', error);
 
+            if (error) {
+                console.error('Error details:', JSON.stringify(error, null, 2));
+            }
+
             if (data) {
+                // Fetch category separately if needed
+                if (data.category_id) {
+                    const { data: categoryData } = await supabase
+                        .from('categories')
+                        .select('name')
+                        .eq('id', data.category_id)
+                        .single();
+
+                    if (categoryData) {
+                        data.category = categoryData;
+                    }
+                }
+
                 setItem(data);
 
                 // Increment views count
@@ -30,8 +49,6 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
                     .from('items')
                     .update({ views: (data.views || 0) + 1 })
                     .eq('id', params.id);
-            } else if (error) {
-                console.error('Error fetching item:', error);
             }
             setLoading(false);
         }

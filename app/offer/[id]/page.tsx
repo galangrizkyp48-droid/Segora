@@ -13,11 +13,14 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
 
     useEffect(() => {
         async function fetchItem() {
-            const { data } = await supabase
+            console.log('Fetching item with ID:', params.id);
+            const { data, error } = await supabase
                 .from('items')
                 .select(`*, category:categories(name)`)
                 .eq('id', params.id)
                 .single();
+
+            console.log('Fetch result - data:', data, 'error:', error);
 
             if (data) {
                 setItem(data);
@@ -27,6 +30,8 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
                     .from('items')
                     .update({ views: (data.views || 0) + 1 })
                     .eq('id', params.id);
+            } else if (error) {
+                console.error('Error fetching item:', error);
             }
             setLoading(false);
         }

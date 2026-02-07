@@ -64,12 +64,10 @@ export default function Home() {
         query = query.eq('campus', campus);
       }
 
-      // 3. Category filter (convert name to ID)
+      // 3. Category filter (match by category name from join)
       if (selectedCategory && selectedCategory !== 'Semua') {
-        const categoryId = categoryNameToId[selectedCategory];
-        if (categoryId) {
-          query = query.eq('category_id', categoryId);
-        }
+        // Filter client-side since we already have category data from join
+        // query stays the same, we'll filter in the result
       }
 
       // 4. Price range filter
@@ -90,7 +88,15 @@ export default function Home() {
       }
 
       const { data } = await query;
-      if (data) setItems(data);
+      if (data) {
+        // Client-side category filter
+        if (selectedCategory && selectedCategory !== 'Semua') {
+          const filtered = data.filter((item: any) => item.category?.name === selectedCategory);
+          setItems(filtered);
+        } else {
+          setItems(data);
+        }
+      }
     }
     const timeout = setTimeout(fetchItems, 500);
     return () => clearTimeout(timeout);
@@ -287,44 +293,64 @@ export default function Home() {
             <p className={`text-xs font-semibold ${selectedCategory === null ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Semua</p>
           </button>
           <button
-            onClick={() => handleCategoryClick('1')}
-            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '1'
+            onClick={() => handleCategoryClick('Desain')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Desain'
               ? 'bg-primary'
               : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
               }`}
           >
-            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '1' ? 'text-white' : ''}`}>print</span>
-            <p className={`text-xs font-medium ${selectedCategory === '1' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Jasa</p>
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Desain' ? 'text-white' : ''}`}>palette</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Desain' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Desain</p>
           </button>
           <button
-            onClick={() => handleCategoryClick('2')}
-            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '2'
+            onClick={() => handleCategoryClick('Transportasi')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Transportasi'
               ? 'bg-primary'
               : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
               }`}
           >
-            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '2' ? 'text-white' : ''}`}>book</span>
-            <p className={`text-xs font-medium ${selectedCategory === '2' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Buku</p>
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Transportasi' ? 'text-white' : ''}`}>directions_car</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Transportasi' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Transportasi</p>
           </button>
           <button
-            onClick={() => handleCategoryClick('3')}
-            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '3'
+            onClick={() => handleCategoryClick('Jasa Titip')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Jasa Titip'
               ? 'bg-primary'
               : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
               }`}
           >
-            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '3' ? 'text-white' : ''}`}>restaurant</span>
-            <p className={`text-xs font-medium ${selectedCategory === '3' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Makanan</p>
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Jasa Titip' ? 'text-white' : ''}`}>shopping_bag</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Jasa Titip' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Jasa Titip</p>
           </button>
           <button
-            onClick={() => handleCategoryClick('4')}
-            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === '4'
+            onClick={() => handleCategoryClick('Barang Bekas')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Barang Bekas'
               ? 'bg-primary'
               : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
               }`}
           >
-            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === '4' ? 'text-white' : ''}`}>devices</span>
-            <p className={`text-xs font-medium ${selectedCategory === '4' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Elektronik</p>
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Barang Bekas' ? 'text-white' : ''}`}>recycling</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Barang Bekas' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Barang Bekas</p>
+          </button>
+          <button
+            onClick={() => handleCategoryClick('Percetakan')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Percetakan'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Percetakan' ? 'text-white' : ''}`}>print</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Percetakan' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Percetakan</p>
+          </button>
+          <button
+            onClick={() => handleCategoryClick('Lainnya')}
+            className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full px-4 transition-colors ${selectedCategory === 'Lainnya'
+              ? 'bg-primary'
+              : 'bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700'
+              }`}
+          >
+            <span className={`material-symbols-outlined text-[18px] ${selectedCategory === 'Lainnya' ? 'text-white' : ''}`}>more_horiz</span>
+            <p className={`text-xs font-medium ${selectedCategory === 'Lainnya' ? 'text-white' : 'text-[#0d171b] dark:text-white'}`}>Lainnya</p>
           </button>
         </div>
       </header>

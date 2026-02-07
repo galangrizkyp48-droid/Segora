@@ -119,6 +119,28 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
         }
     };
 
+    const handleShare = async () => {
+        if (!item) return;
+
+        const shareData = {
+            title: item.title,
+            text: `${item.title} - Rp ${item.price.toLocaleString('id-ID')}`,
+            url: window.location.href
+        };
+
+        try {
+            if (navigator.share) {
+                await navigator.share(shareData);
+            } else {
+                // Fallback: copy link to clipboard
+                await navigator.clipboard.writeText(window.location.href);
+                alert('Link berhasil disalin!');
+            }
+        } catch (error) {
+            console.error('Error sharing:', error);
+        }
+    };
+
     if (loading) return <div className="min-h-screen flex items-center justify-center text-slate-500">Memuat...</div>;
     if (!item) return <div className="min-h-screen flex items-center justify-center text-slate-500">Tawaran tidak ditemukan</div>;
 
@@ -131,7 +153,10 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
                 </button>
                 <div className="text-lg font-bold">Detail Tawaran</div>
                 <div className="flex gap-2">
-                    <button className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-[#0d171b] dark:text-white transition-transform active:scale-95">
+                    <button
+                        onClick={handleShare}
+                        className="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white dark:bg-slate-800 shadow-sm text-[#0d171b] dark:text-white transition-transform active:scale-95"
+                    >
                         <span className="material-symbols-outlined">share</span>
                     </button>
                 </div>
@@ -192,11 +217,7 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
                                         <h3 className="font-bold text-base">{item.seller_name}</h3>
                                         <span className="material-symbols-outlined text-primary text-lg" style={{ fontVariationSettings: "'FILL' 1" }}>verified</span>
                                     </div>
-                                    <div className="flex items-center gap-1 text-sm text-gray-500 dark:text-gray-400">
-                                        <span className="material-symbols-outlined text-yellow-500 text-sm" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                        <span className="font-bold text-gray-800 dark:text-gray-200">{item.rating}</span>
-                                        <span>(128 Penjualan)</span>
-                                    </div>
+                                    <p className="text-sm text-gray-500 dark:text-gray-400">Penjual</p>
                                 </div>
                             </div>
                             <button
@@ -209,42 +230,12 @@ export default function OfferDetail({ params }: { params: Promise<{ id: string }
                     </div>
                 </div>
 
-                {/* Tabs */}
-                <div className="px-4 pt-8">
-                    <div className="flex border-b border-gray-200 dark:border-gray-800">
-                        <button className="px-4 py-3 border-b-2 border-primary text-primary font-bold text-sm">Deskripsi</button>
-                        <button className="px-4 py-3 text-gray-500 dark:text-gray-400 font-medium text-sm hover:text-gray-700 dark:hover:text-gray-200 transition-colors">Ulasan (45)</button>
-                    </div>
-                    <div className="py-4">
-                        <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm whitespace-pre-wrap">
-                            {item.description}
-                        </p>
-                    </div>
-                </div>
-
-                {/* Reviews Teaser */}
-                <div className="px-4 pt-4 pb-8">
-                    <h4 className="font-bold mb-4">Ulasan Terbaru</h4>
-                    <div className="space-y-4">
-                        <div className="bg-gray-50 dark:bg-slate-900/50 p-4 rounded-xl">
-                            <div className="flex justify-between items-center mb-2">
-                                <div className="flex items-center gap-2">
-                                    <div className="size-8 rounded-full bg-slate-300 overflow-hidden">
-                                        <div className="w-full h-full flex items-center justify-center bg-slate-200 text-slate-500">
-                                            <span className="material-symbols-outlined text-sm">person</span>
-                                        </div>
-                                    </div>
-                                    <span className="text-sm font-bold">Siti Aminah</span>
-                                </div>
-                                <div className="flex text-yellow-500">
-                                    {[1, 2, 3, 4, 5].map((star) => (
-                                        <span key={star} className="material-symbols-outlined text-xs" style={{ fontVariationSettings: "'FILL' 1" }}>star</span>
-                                    ))}
-                                </div>
-                            </div>
-                            <p className="text-sm text-gray-600 dark:text-gray-400 italic">"Hasilnya keren banget! Responsif dan ngerti apa yang dimau. Makasih kak!"</p>
-                        </div>
-                    </div>
+                {/* Description Section */}
+                <div className="px-4 pt-8 pb-8">
+                    <h4 className="font-bold mb-3">Deskripsi</h4>
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed text-sm whitespace-pre-wrap">
+                        {item.description}
+                    </p>
                 </div>
             </main>
 

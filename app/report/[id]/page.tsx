@@ -1,8 +1,10 @@
+```javascript
 "use client";
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/utils/supabase/client";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function ReportPage({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -12,6 +14,7 @@ export default function ReportPage({ params }: { params: { id: string } }) {
     const [reportText, setReportText] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [item, setItem] = useState<any>(null);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
 
     useEffect(() => {
         const fetchItem = async () => {
@@ -27,18 +30,19 @@ export default function ReportPage({ params }: { params: { id: string } }) {
 
     const handleSubmit = async () => {
         if (rating === 0 && !reportReason) {
-            alert("Mohon berikan ulasan atau pilih alasan pelaporan.");
+            setAlertDialog({ show: true, title: 'Pilih Aksi', message: 'Mohon berikan ulasan atau pilih alasan pelaporan.' });
             return;
         }
 
         const { data: { session } } = await supabase.auth.getSession();
         if (!session) {
+            setAlertDialog({ show: true, title: 'Belum Login', message: 'Anda harus login untuk melaporkan.' });
             router.push('/login');
             return;
         }
 
         if (!item) {
-            alert('Data item tidak ditemukan');
+            setAlertDialog({ show: true, title: 'Item Tidak Ditemukan', message: 'Data item yang ingin dilaporkan tidak ditemukan.' });
             return;
         }
 
@@ -59,12 +63,12 @@ export default function ReportPage({ params }: { params: { id: string } }) {
 
         if (error) {
             console.error('Error submitting report:', error);
-            alert('Gagal mengirim laporan. Silakan coba lagi.');
+            setAlertDialog({ show: true, title: 'Gagal Mengirim Laporan', message: `Gagal mengirim laporan.Silakan coba lagi.Error: ${ error.message } ` });
             return;
         }
 
-        alert("Laporan dan ulasan Anda telah dikirim. Terima kasih telah membantu menjaga keamanan Segora.");
-        router.back();
+        setAlertDialog({ show: true, title: 'Laporan Terkirim', message: 'Laporan dan ulasan Anda telah dikirim. Terima kasih telah membantu menjaga keamanan Segora.' });
+        setTimeout(() => router.back(), 2000);
     };
 
     return (
@@ -110,7 +114,7 @@ export default function ReportPage({ params }: { params: { id: string } }) {
                         <div className="flex gap-2 mb-6 justify-center">
                             {[1, 2, 3, 4, 5].map((star) => (
                                 <button key={star} onClick={() => setRating(star)}>
-                                    <span className={`material-symbols-outlined text-4xl ${star <= rating ? 'text-primary' : 'text-slate-300 dark:text-slate-700'}`}>star</span>
+                                    <span className={`material - symbols - outlined text - 4xl ${ star <= rating ? 'text-primary' : 'text-slate-300 dark:text-slate-700' } `}>star</span>
                                 </button>
                             ))}
                         </div>
@@ -143,7 +147,7 @@ export default function ReportPage({ params }: { params: { id: string } }) {
                         {/* RadioList */}
                         <div className="flex flex-col gap-3 p-4">
                             {["Penipuan / Phishing", "Barang/Jasa tidak sesuai deskripsi", "Perilaku tidak sopan / Pelecehan", "Akun Palsu / Spam"].map((reason) => (
-                                <label key={reason} className={`flex items-center gap-4 rounded-xl border border-solid p-[15px] flex-row-reverse cursor-pointer transition-colors ${reportReason === reason ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-[#cfdfe7] dark:border-slate-700 bg-white dark:bg-slate-900'}`}>
+                                <label key={reason} className={`flex items - center gap - 4 rounded - xl border border - solid p - [15px] flex - row - reverse cursor - pointer transition - colors ${ reportReason === reason ? 'border-primary bg-primary/5 dark:bg-primary/10' : 'border-[#cfdfe7] dark:border-slate-700 bg-white dark:bg-slate-900' } `}>
                                     <input
                                         className="radio-custom h-5 w-5 border-2 border-[#cfdfe7] dark:border-slate-600 bg-transparent text-transparent checked:border-primary focus:outline-none focus:ring-0 focus:ring-offset-0 text-primary"
                                         name="report_reason"

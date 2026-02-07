@@ -1,18 +1,21 @@
+```javascript
 "use client";
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function SetupShop() {
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [shopName, setShopName] = useState("");
-    const [shopDesc, setShopDesc] = useState("");
-
+    const [shopDescription, setShopDescription] = useState(""); // Renamed from shopDesc
     const [shopImage, setShopImage] = useState<File | null>(null);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
+
 
     useEffect(() => {
         const checkUser = async () => {
@@ -32,19 +35,26 @@ export default function SetupShop() {
     };
 
     const handleSave = async () => {
-        if (!shopName) return alert("Nama toko wajib diisi!");
+        if (!shopName) {
+            setAlertDialog({ show: true, title: "Peringatan", message: "Nama toko wajib diisi!" });
+            return;
+        }
         setLoading(true);
 
         const { data: { user } } = await supabase.auth.getUser();
-        if (!user) return;
+        if (!user) {
+            setAlertDialog({ show: true, title: "Error", message: "Pengguna tidak ditemukan." });
+            setLoading(false);
+            return;
+        }
 
         let uploadedImageUrl = null;
 
         // Upload Image if selected
         if (shopImage) {
             const fileExt = shopImage.name.split('.').pop();
-            const fileName = `${user.id}-${Math.random()}.${fileExt}`;
-            const filePath = `shops/${fileName}`;
+            const fileName = `${ user.id } -${ Math.random() }.${ fileExt } `;
+            const filePath = `shops / ${ fileName } `;
 
             const { error: uploadError } = await supabase.storage
                 .from('images')
@@ -52,7 +62,7 @@ export default function SetupShop() {
 
             if (uploadError) {
                 console.error("Upload error:", uploadError);
-                alert("Gagal upload foto: " + uploadError.message);
+                setAlertDialog({ show: true, title: "Gagal Upload", message: `Gagal upload foto: ${ uploadError.message } ` });
                 setLoading(false);
                 return;
             }
@@ -68,7 +78,7 @@ export default function SetupShop() {
         const updateData: any = {
             is_seller: true,
             shop_name: shopName,
-            shop_description: shopDesc,
+            shop_description: shopDescription, // Using renamed state
         };
 
         if (uploadedImageUrl) {
@@ -81,12 +91,13 @@ export default function SetupShop() {
             .eq('id', user.id);
 
         if (error) {
-            alert("Gagal menyimpan: " + error.message);
-            setLoading(false);
+            console.error('Error updating profile:', error);
+            setAlertDialog({ show: true, title: 'Gagal', message: `Gagal membuat toko: ${ error.message } ` });
         } else {
-            // Success - Redirect to Profile as requested
-            router.push("/profile");
+            setAlertDialog({ show: true, title: 'Berhasil', message: 'Toko berhasil dibuat!' });
+            setTimeout(() => router.push("/profile"), 1500); // Redirect to profile after success
         }
+        setLoading(false);
     };
 
     return (
@@ -157,6 +168,14 @@ export default function SetupShop() {
                     </button>
                 </div>
             </footer>
+
+            <AlertDialog
+                show={alertDialog.show}
+                title={alertDialog.title}
+                message={alertDialog.message}
+                onClose={() => setAlertDialog({ show: false, title: '', message: '' })}
+            />
         </div>
     );
 }
+```

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { useRouter } from "next/navigation";
+import AlertDialog from "@/components/AlertDialog";
 
 export default function EditOffer({ params }: { params: { id: string } }) {
     const router = useRouter();
@@ -11,6 +12,7 @@ export default function EditOffer({ params }: { params: { id: string } }) {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [uploading, setUploading] = useState(false);
+    const [alertDialog, setAlertDialog] = useState<{ show: boolean; title: string; message: string }>({ show: false, title: '', message: '' });
     const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
     const [formData, setFormData] = useState({
         title: "",
@@ -53,7 +55,7 @@ export default function EditOffer({ params }: { params: { id: string } }) {
                 });
                 setOfferType(data.offer_type || "Produk");
             } else if (error) {
-                alert("Error fetching item: " + error.message);
+                setAlertDialog({ show: true, title: 'Error', message: `Error fetching item: ${error.message}` });
                 router.push("/dashboard");
             }
             setLoading(false);
@@ -67,7 +69,7 @@ export default function EditOffer({ params }: { params: { id: string } }) {
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Ukuran file maksimal 5MB');
+            setAlertDialog({ show: true, title: 'File Terlalu Besar', message: 'Ukuran file maksimal 5MB' });
             return;
         }
 
@@ -76,12 +78,12 @@ export default function EditOffer({ params }: { params: { id: string } }) {
         const fileName = `${Math.random().toString(36).substring(2)}_${Date.now()}.${fileExt}`;
         const filePath = `item-images/${fileName}`;
 
-        const { error: uploadError, data } = await supabase.storage
+        const { error: uploadError } = await supabase.storage
             .from('items')
             .upload(filePath, file);
 
         if (uploadError) {
-            alert('Gagal upload gambar: ' + uploadError.message);
+            setAlertDialog({ show: true, title: 'Gagal Upload', message: `Gagal upload gambar: ${uploadError.message}` });
             setUploading(false);
             return;
         }
@@ -126,7 +128,7 @@ export default function EditOffer({ params }: { params: { id: string } }) {
         if (!error) {
             router.push("/dashboard");
         } else {
-            alert("Gagal memperbarui: " + error.message);
+            setAlertDialog({ show: true, title: 'Gagal Memperbarui', message: `Gagal memperbarui: ${error.message}` });
         }
         setSaving(false);
     };

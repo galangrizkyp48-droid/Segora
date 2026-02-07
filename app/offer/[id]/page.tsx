@@ -1,25 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { supabase } from "@/utils/supabase/client";
 import { Item } from "@/utils/types";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-export default function OfferDetail({ params }: { params: { id: string } }) {
+export default function OfferDetail({ params }: { params: Promise<{ id: string }> }) {
     const [item, setItem] = useState<Item | null>(null);
     const [loading, setLoading] = useState(true);
     const router = useRouter();
 
+    // Unwrap params Promise for Next.js 13+ App Router
+    const unwrappedParams = use(params);
+
     useEffect(() => {
         async function fetchItem() {
-            console.log('Fetching item with ID:', params.id);
+            console.log('Fetching item with ID:', unwrappedParams.id);
 
             // First try: fetch without category join to avoid 400 error
             const { data, error } = await supabase
                 .from('items')
                 .select('*')
-                .eq('id', params.id)
+                .eq('id', unwrappedParams.id)
                 .single();
 
             console.log('Fetch result - data:', data, 'error:', error);
@@ -48,12 +51,12 @@ export default function OfferDetail({ params }: { params: { id: string } }) {
                 await supabase
                     .from('items')
                     .update({ views: (data.views || 0) + 1 })
-                    .eq('id', params.id);
+                    .eq('id', unwrappedParams.id);
             }
             setLoading(false);
         }
         fetchItem();
-    }, [params.id]);
+    }, [unwrappedParams.id]);
 
     const handleInteraction = async (action: () => void) => {
         const { data: { session } } = await supabase.auth.getSession();

@@ -34,6 +34,14 @@ export default function Home() {
     sortBy: ''
   });
 
+  // Category name to ID mapping (based on standard categories table)
+  const categoryNameToId: { [key: string]: number } = {
+    'Jasa': 1,
+    'Buku': 2,
+    'Makanan': 3,
+    'Elektronik': 4
+  };
+
   useEffect(() => {
     async function fetchItems() {
       let query = supabase
@@ -56,9 +64,12 @@ export default function Home() {
         query = query.eq('campus', campus);
       }
 
-      // 3. Category filter (using category name from join)
+      // 3. Category filter (convert name to ID)
       if (selectedCategory && selectedCategory !== 'Semua') {
-        query = query.eq('category.name', selectedCategory);
+        const categoryId = categoryNameToId[selectedCategory];
+        if (categoryId) {
+          query = query.eq('category_id', categoryId);
+        }
       }
 
       // 4. Price range filter

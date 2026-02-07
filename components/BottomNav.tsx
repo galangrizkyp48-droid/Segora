@@ -41,7 +41,7 @@ export default function BottomNav() {
             </Link>
 
             <div className="flex flex-col items-center">
-                <Link href="/create-offer">
+                <Link href={isSeller ? "/create-offer" : "/setup-shop"}>
                     <div className="bg-primary size-12 rounded-full flex items-center justify-center text-white -mt-8 shadow-lg shadow-primary/30 border-4 border-background-light dark:border-background-dark">
                         <span className="material-symbols-outlined text-[28px]">add</span>
                     </div>
@@ -54,14 +54,9 @@ export default function BottomNav() {
                 <span className={`text-[10px] ${isActive("/messages") ? "font-bold" : "font-medium"}`}>Pesan</span>
             </Link>
 
-            <Link href={isSeller ? "/dashboard" : "/profile"} className={`flex flex-col items-center gap-1 ${isActive(isSeller ? "/dashboard" : "/profile") && !isActive("/messages") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
-                <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/dashboard") ? "'FILL' 1" : "'FILL' 0" }}>storefront</span>
-                <span className={`text-[10px] ${isActive("/dashboard") ? "font-bold" : "font-medium"}`}>Toko</span>
-            </Link>
-
-            <Link href="/profile" className={`flex flex-col items-center gap-1 ${isActive("/profile") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
-                <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/profile") ? "'FILL' 1" : "'FILL' 0" }}>person</span>
-                <span className={`text-[10px] ${isActive("/profile") ? "font-bold" : "font-medium"}`}>Profil</span>
+            <Link href="/profile" className={`flex flex-col items-center gap-1 ${isActive("/profile") || isActive("/dashboard") ? "text-primary" : "text-[#4c809a] dark:text-slate-400"}`}>
+                <span className="material-symbols-outlined text-[26px]" style={{ fontVariationSettings: isActive("/profile") || isActive("/dashboard") ? "'FILL' 1" : "'FILL' 0" }}>person</span>
+                <span className={`text-[10px] ${isActive("/profile") || isActive("/dashboard") ? "font-bold" : "font-medium"}`}>Profil</span>
             </Link>
         </nav>
     );

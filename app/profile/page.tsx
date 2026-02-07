@@ -9,14 +9,25 @@ import { useEffect, useState } from "react";
 export default function Profile() {
     const router = useRouter();
     const [user, setUser] = useState<any>(null);
+    const [profile, setProfile] = useState<any>(null);
+    const [mode, setMode] = useState<'buyer' | 'seller'>('buyer');
 
     useEffect(() => {
         async function getUser() {
             const { data: { user } } = await supabase.auth.getUser();
             if (!user) {
-                router.push("/login"); // Protect route
+                router.push("/login");
             } else {
                 setUser(user);
+                // Fetch profile for is_seller status
+                const { data: profileData } = await supabase
+                    .from('profiles')
+                    .select('*')
+                    .eq('id', user.id)
+                    .single();
+                if (profileData) {
+                    setProfile(profileData);
+                }
             }
         }
         getUser();
@@ -35,10 +46,22 @@ export default function Profile() {
             </header>
 
             <main className="p-4">
-                {user ? (
+                {user && profile ? (
                     <>
-                        {!user.user_metadata?.is_seller && (
-                            <div className="px-4 py-3">
+                        {/* Profile Header */}
+                        <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4 mb-4">
+                            <div className="size-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold">
+                                {user.email?.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                                <h2 className="font-bold text-lg">{profile.full_name || user.email}</h2>
+                                <p className="text-slate-500 text-sm">{profile.campus || 'Mahasiswa'}</p>
+                            </div>
+                        </div>
+
+                        {/* Buka Toko CTA (if not seller) */}
+                        {!profile.is_seller && (
+                            <div className="mb-4">
                                 <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-400 text-white shadow-lg overflow-hidden relative">
                                     <div className="absolute right-0 top-0 opacity-10">
                                         <span className="material-symbols-outlined text-[100px]">storefront</span>
@@ -54,48 +77,62 @@ export default function Profile() {
                             </div>
                         )}
 
-                        <div className="flex flex-col p-4 gap-1">
-                            <div className="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 flex items-center gap-4">
-                                <div className="size-16 rounded-full bg-primary/20 flex items-center justify-center text-primary text-2xl font-bold">
-                                    {user.email?.charAt(0).toUpperCase()}
-                                </div>
-                                <div>
-                                    <h2 className="font-bold text-lg">{user.email}</h2>
-                                    <p className="text-slate-500 text-sm">Mahasiswa</p>
-                                </div>
+                        {/* Mode Tabs (if seller) */}
+                        {profile.is_seller && (
+                            <div className="flex gap-2 mb-4 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
+                                <button
+                                    onClick={() => setMode('buyer')}
+                                    className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all ${mode === 'buyer'
+                                            ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                            : 'text-slate-500'
+                                        }`}
+                                >
+                                    Pembeli
+                                </button>
+                                <button
+                                    onClick={() => setMode('seller')}
+                                    className={`flex-1 py-2 px-4 rounded-full text-sm font-bold transition-all ${mode === 'seller'
+                                            ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                            : 'text-slate-500'
+                                        }`}
+                                >
+                                    Penjual
+                                </button>
                             </div>
+                        )}
 
-                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden mt-4">
-                                {user.user_metadata?.is_seller || (user as any)?.is_seller ? ( // Check metadata or fallback
-                                    <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
-                                        <span className="material-symbols-outlined text-gray-500">list_alt</span>
-                                        <div>
-                                            <p className="font-semibold text-sm">Dashboard Penjual</p>
-                                            <p className="text-xs text-slate-400">Kelola tawaran & statistik</p>
-                                        </div>
-                                    </Link>
-                                ) : (
-                                    <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-not-allowed opacity-60">
-                                        <span className="material-symbols-outlined text-gray-400">storefront</span>
-                                        <div>
-                                            <p className="font-semibold text-sm text-gray-500">Toko Belum Aktif</p>
-                                            <p className="text-xs text-gray-400">Silahkan buka toko terlebih dahulu</p>
-                                        </div>
+                        {/* Buyer Mode Content */}
+                        {mode === 'buyer' && (
+                            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                                <div
+                                    onClick={() => alert("Fitur 'Riwayat Pembelian' akan segera hadir!")}
+                                    className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                >
+                                    <span className="material-symbols-outlined text-gray-500">shopping_bag</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">Riwayat Pembelian</p>
+                                        <p className="text-xs text-slate-400">Lihat pesanan kamu</p>
                                     </div>
-                                )}
+                                </div>
                                 <div
                                     onClick={() => alert("Fitur 'Disukai' akan segera hadir!")}
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-gray-500">favorite</span>
-                                    <span>Disukai</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">Disukai</p>
+                                        <p className="text-xs text-slate-400">Item favorit kamu</p>
+                                    </div>
                                 </div>
                                 <div
                                     onClick={() => alert("Fitur 'Pengaturan' akan segera hadir!")}
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-gray-500">settings</span>
-                                    <span>Pengaturan</span>
+                                    <div>
+                                        <p className="font-semibold text-sm">Pengaturan</p>
+                                        <p className="text-xs text-slate-400">Kelola akun kamu</p>
+                                    </div>
                                 </div>
                                 <Link
                                     href="https://wa.me/6281315138168?text=Halo%20Tim%20Support%20Segora,%20saya%20ingin%20melaporkan%20masalah%20atau%20memberikan%20saran..."
@@ -109,7 +146,59 @@ export default function Profile() {
                                     </div>
                                 </Link>
                             </div>
-                        </div>
+                        )}
+
+                        {/* Seller Mode Content */}
+                        {mode === 'seller' && profile.is_seller && (
+                            <div className="space-y-4">
+                                {/* Quick Stats */}
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                                        <p className="text-2xl font-bold text-primary">0</p>
+                                        <p className="text-xs text-slate-500 mt-1">Tawaran Aktif</p>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                                        <p className="text-2xl font-bold text-primary">0</p>
+                                        <p className="text-xs text-slate-500 mt-1">Total Views</p>
+                                    </div>
+                                    <div className="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700 text-center">
+                                        <p className="text-2xl font-bold text-primary">5.0</p>
+                                        <p className="text-xs text-slate-500 mt-1">Rating</p>
+                                    </div>
+                                </div>
+
+                                {/* Seller Actions */}
+                                <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+                                    <Link href="/dashboard" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <span className="material-symbols-outlined text-primary">dashboard</span>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-sm">Dashboard Lengkap</p>
+                                            <p className="text-xs text-slate-400">Kelola semua tawaran</p>
+                                        </div>
+                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                                    </Link>
+                                    <Link href="/create-offer" className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors">
+                                        <span className="material-symbols-outlined text-green-500">add_circle</span>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-sm">Buat Tawaran Baru</p>
+                                            <p className="text-xs text-slate-400">Jual produk atau jasa</p>
+                                        </div>
+                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                                    </Link>
+                                    <div
+                                        onClick={() => alert("Fitur 'Statistik' akan segera hadir!")}
+                                        className="p-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                    >
+                                        <span className="material-symbols-outlined text-blue-500">bar_chart</span>
+                                        <div className="flex-1">
+                                            <p className="font-semibold text-sm">Statistik Penjualan</p>
+                                            <p className="text-xs text-slate-400">Lihat performa toko</p>
+                                        </div>
+                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
                     </>
                 ) : (
                     <div className="text-center py-20 text-slate-400">Loading profile...</div>

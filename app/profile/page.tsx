@@ -170,8 +170,8 @@ export default function Profile() {
                                     </div>
                                     <span className="material-symbols-outlined text-slate-400 ml-auto">chevron_right</span>
                                 </Link>
-                                <div
-                                    onClick={() => alert("Fitur 'Pengaturan' akan segera hadir!")}
+                                <Link
+                                    href="/settings"
                                     className="p-4 border-b border-slate-100 dark:border-slate-700 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
                                 >
                                     <span className="material-symbols-outlined text-gray-500">settings</span>
@@ -179,7 +179,8 @@ export default function Profile() {
                                         <p className="font-semibold text-sm">Pengaturan</p>
                                         <p className="text-xs text-slate-400">Kelola akun kamu</p>
                                     </div>
-                                </div>
+                                    <span className="material-symbols-outlined text-slate-400 ml-auto">chevron_right</span>
+                                </Link>
                                 <Link
                                     href="https://wa.me/6281315138168?text=Halo%20Tim%20Support%20Segora,%20saya%20ingin%20melaporkan%20masalah%20atau%20memberikan%20saran..."
                                     target="_blank"
@@ -232,15 +233,14 @@ export default function Profile() {
                                         <span className="material-symbols-outlined text-slate-400">chevron_right</span>
                                     </Link>
                                     <div
-                                        onClick={() => alert("Fitur 'Statistik' akan segera hadir!")}
-                                        className="p-4 flex items-center gap-3 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors"
+                                        className="p-4 flex items-center gap-3 opacity-60 cursor-not-allowed relative group"
                                     >
                                         <span className="material-symbols-outlined text-blue-500">bar_chart</span>
                                         <div className="flex-1">
                                             <p className="font-semibold text-sm">Statistik Penjualan</p>
                                             <p className="text-xs text-slate-400">Lihat performa toko</p>
                                         </div>
-                                        <span className="material-symbols-outlined text-slate-400">chevron_right</span>
+                                        <span className="text-xs bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 px-2 py-1 rounded-full">Segera</span>
                                     </div>
                                 </div>
                             </div>

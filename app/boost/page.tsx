@@ -54,8 +54,7 @@ export default function BoostPage() {
     };
 
     const handlePayment = () => {
-        alert("Fitur sedang dikembangkan.");
-        // router.push("/dashboard"); // Stay on page or redirect? User said "hanya menampilkan kalimat pop up"
+        alert("💳 Fitur pembayaran akan segera hadir! Untuk sementara, hubungi admin untuk mengaktifkan boost.");
     };
 
     if (loading) return null;
@@ -205,7 +204,7 @@ export default function BoostPage() {
                                     <p className="text-lg font-bold">Rp 49.000<span className="text-xs font-normal">/bulan</span></p>
                                 </div>
                                 <button
-                                    onClick={() => alert("Fitur sedang dikembangkan.")}
+                                    onClick={() => alert("🎁 Fitur kode promo akan segera hadir! Ikuti media sosial kami untuk mendapatkan kode promo eksklusif.")}
                                     className="bg-white text-primary px-4 py-2 rounded-full text-sm font-bold shadow-sm hover:scale-105 transition-transform"
                                 >
                                     Cek Paket
